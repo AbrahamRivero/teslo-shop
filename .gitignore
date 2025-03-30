@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+# Docker files
+postgres/
+
 # Logs
 logs
 *.log
