@@ -1603,6 +1603,14 @@
     blueimp-md5 "^2.19.0"
     node-fetch "^2.6.9"
 
+"@uploadcare/upload-client@^6.14.3":
+  version "6.14.3"
+  resolved "https://registry.yarnpkg.com/@uploadcare/upload-client/-/upload-client-6.14.3.tgz#40b2a1093a64bc2ce904566e703a213effac1763"
+  integrity sha512-uZDXb2IuFchpNQdHDxDowKgGPd+9UOy0PIykWEPedMbbBYxh7/UUQ+G53E4KhKe7cV7BV4zoFxUrNx+Ij0lyPw==
+  dependencies:
+    form-data "^4.0.0"
+    ws "^8.2.3"
+
 "@webassemblyjs/ast@1.14.1", "@webassemblyjs/ast@^1.14.1":
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/@webassemblyjs/ast/-/ast-1.14.1.tgz#a9f6a07f2b03c95c8d38c4536a1fdfb521ff55b6"
@@ -5985,6 +5993,11 @@ write-file-atomic@^4.0.2:
   dependencies:
     imurmurhash "^0.1.4"
     signal-exit "^3.0.7"
+
+ws@^8.2.3:
+  version "8.18.1"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.1.tgz#ea131d3784e1dfdff91adb0a4a116b127515e3cb"
+  integrity sha512-RKW2aJZMXeMxVpnZ6bck+RswznaxmzdULiBr6KY7XkTnW8uvt0iT9H5DkHUChXrc+uurzwa0rVI16n/Xzjdz1w==
 
 xtend@^4.0.0:
   version "4.0.2"
