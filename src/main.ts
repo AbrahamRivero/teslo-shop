@@ -1,10 +1,11 @@
 /* eslint-disable prettier/prettier */
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
 
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
@@ -18,6 +19,7 @@ async function bootstrap() {
     }),
   );
   await app.listen(process.env.PORT ?? 3000);
+  logger.log(`App running on port:${process.env.PORT}`);
 }
 bootstrap().catch((error) => {
   console.error('Error during application bootstrap:', error);
