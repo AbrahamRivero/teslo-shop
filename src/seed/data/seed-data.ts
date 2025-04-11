@@ -1,4 +1,6 @@
 /* eslint-disable prettier/prettier */
+import { hashSync } from 'bcrypt';
+
 interface SeedProduct {
   description: string;
   images: string[];
@@ -15,11 +17,26 @@ interface SeedProduct {
 type ValidSizes = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'XXXL';
 type ValidTypes = 'shirts' | 'pants' | 'hoodies' | 'hats';
 
+interface SeedUser {
+  email: string;
+  fullName: string;
+  password: string;
+  roles: string[];
+}
 interface SeedData {
   products: SeedProduct[];
+  users: SeedUser[];
 }
 
 export const initialData: SeedData = {
+  users: [
+    {
+      email: 'test1@gmail.com',
+      fullName: 'Test One',
+      password: hashSync('Abc123', 12),
+      roles: ['user', 'admin'],
+    },
+  ],
   products: [
     {
       description:
