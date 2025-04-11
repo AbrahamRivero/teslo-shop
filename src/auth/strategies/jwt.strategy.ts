@@ -1,42 +1,48 @@
 /* eslint-disable prettier/prettier */
-import { UnauthorizedException, Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 import { PassportStrategy } from '@nestjs/passport';
-import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-
+import { Repository } from 'typeorm';
+import { User } from '../entities/user.entity';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
-import { User } from '../entities/user.entity';
-
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+export class JwtStrategy extends PassportStrategy( Strategy ) {
 
-    private readonly configService: ConfigService,
-  ) {
-    const jwtSecret = configService.get<string>('JWT_SECRET');
-    if (!jwtSecret) {
-      throw new Error('JWT_SECRET must be defined');
+    constructor(
+        @InjectRepository( User )
+        private readonly userRepository: Repository<User>,
+
+        configService: ConfigService
+    ) {
+        const jwtSecret = configService.get('JWT_SECRET');
+        if (!jwtSecret) {
+            throw new Error('JWT_SECRET must be defined');
+        }
+
+        super({
+            secretOrKey: jwtSecret,
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+        });
     }
 
-    super({
-      secretOrKey: jwtSecret,
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    });
-  }
+    async validate( payload: JwtPayload ): Promise<User> {
+        
+        const { id } = payload;
 
-  async validate(payload: JwtPayload): Promise<User> {
-    const { email } = payload;
-    const user = await this.userRepository.findOneBy({ email });
-    if (!user) throw new UnauthorizedException('Token not valid');
+        const user = await this.userRepository.findOneBy({ id });
 
-    if (!user.isActive)
-      throw new UnauthorizedException('User is not active, talk with admin');
+        if ( !user ) 
+            throw new UnauthorizedException('Token not valid')
+            
+        if ( !user.isActive ) 
+            throw new UnauthorizedException('User is inactive, talk with an admin');
+        
 
-    return user;
-  }
+        return user;
+    }
+
 }
