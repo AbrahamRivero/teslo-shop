@@ -6,7 +6,7 @@ Para integrar NestJS con Uploadcare y gestionar la subida y recuperación de im�
 
 ### Instalar dependencias necesarias
 ```bash
-npm install @uploadcare/rest-client @nestjs/axios axios
+npm install @uploadcare/rest-client
 ```
 
 ### Configurar módulo Uploadcare
