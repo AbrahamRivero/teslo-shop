@@ -14,7 +14,7 @@ import {
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
 import { SignUpUserDto, SignInUserDto } from './dto';
-import { User } from './entities/user.entity';
+import { User, UserWithOutPassword } from './entities/user.entity';
 import { Auth } from './decorators';
 
 @ApiTags('Auth')
@@ -23,7 +23,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: 'Sign up a new user' })
-  @ApiCreatedResponse({ description: 'User created successfully', type: User })
+  @ApiCreatedResponse({ description: 'User created successfully', type: UserWithOutPassword })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiBody({ type: SignUpUserDto })
   @Post('sign-up')
@@ -32,7 +32,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Sign in a user' })
-  @ApiOkResponse({ description: 'User signed in successfully', type: User })
+  @ApiOkResponse({ description: 'User signed in successfully', type: UserWithOutPassword })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiBody({ type: SignInUserDto })

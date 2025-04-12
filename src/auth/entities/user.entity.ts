@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Product } from 'src/products/entities';
 import {
   BeforeInsert,
@@ -75,3 +75,7 @@ export class User {
     this.checkFieldsBeforeInsert();
   }
 }
+
+export class UserWithOutPassword extends OmitType(User, [
+  'password',
+] as const) {}

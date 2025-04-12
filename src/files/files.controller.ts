@@ -15,7 +15,7 @@ import { diskStorage } from 'multer';
 import { fileFilter, fileNamer } from './helpers';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiOkResponse, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 @ApiTags('Files')
 @Controller('files')
@@ -25,12 +25,20 @@ export class FilesController {
     private readonly configService: ConfigService,
   ) {}
 
+  @ApiOperation({ summary: 'Get product image' })
+  @ApiOkResponse({ description: 'Product image' })
   @Get(':products/:imageName')
   getProductImage(@Res() res: Response, @Param('imageName') imageName: string) {
     const path = this.filesService.getStaticProductImage(imageName);
     res.sendFile(path);
   }
 
+  @ApiOperation({ summary: 'Upload product images' })
+  @ApiOkResponse({ description: 'Product images' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'List of images',
+  })
   @Post('products')
   @UseInterceptors(
     FileInterceptor('file', {
