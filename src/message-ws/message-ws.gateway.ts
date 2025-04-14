@@ -6,19 +6,35 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { JwtService } from '@nestjs/jwt';
 import { MessageWsService } from './message-ws.service';
 import { Server, Socket } from 'socket.io';
 import { NewMessageDto } from './dto/new-message.dto';
+import { JwtPayload } from 'src/auth/interfaces';
 
 @WebSocketGateway({ cors: true })
 export class MessageWsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer() wss: Server;
-  constructor(private readonly messageWsService: MessageWsService) {}
+  constructor(
+    private readonly messageWsService: MessageWsService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  handleConnection(client: Socket) {
-    this.messageWsService.registerClient(client, client.id);
+  async handleConnection(client: Socket) {
+    const token = client.handshake.headers.authentication as string;
+    let payload: JwtPayload;
+
+    try {
+      payload = this.jwtService.verify(token);
+      await this.messageWsService.registerClient(client, payload.id);
+    } catch (error) {
+      console.log(error);
+      client.disconnect();
+      return;
+    }
+
     this.wss.emit(
       'clients-updated',
       this.messageWsService.getConnectedClients(),
@@ -48,7 +64,7 @@ export class MessageWsGateway
 
     //!Emite un mensaje a todos los clientes
     this.wss.emit('message-from-server', {
-      fullName: 'Yo',
+      fullName: this.messageWsService.getUserFullName(client.id),
       message: payload.message,
     });
   }
