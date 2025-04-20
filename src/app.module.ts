@@ -14,11 +14,7 @@ import { MessageWsModule } from './message-ws/message-ws.module';
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: +(process.env.DB_PORT || 5432),
-      database: process.env.DB_NAME,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
+      url: process.env.DB_HOST,
       autoLoadEntities: true,
       synchronize: true,
     }),
