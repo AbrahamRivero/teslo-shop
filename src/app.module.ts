@@ -16,7 +16,7 @@ import { MessageWsModule } from './message-ws/message-ws.module';
       type: 'postgres',
       url: process.env.DB_HOST,
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false,
     }),
     ProductsModule,
     CommonModule,
