@@ -8,6 +8,7 @@ import { SeedModule } from './seed/seed.module';
 import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
 import { MessageWsModule } from './message-ws/message-ws.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MessageWsModule } from './message-ws/message-ws.module';
     FilesModule,
     AuthModule,
     MessageWsModule,
+    ReviewsModule,
   ],
 })
 export class AppModule {}
