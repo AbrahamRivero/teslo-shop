@@ -3,6 +3,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Product } from 'src/products/entities';
 import { Review } from 'src/reviews/entities/review.entity';
+import { Order } from 'src/order/entities/order.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -76,6 +77,13 @@ export class User {
   })
   @OneToMany(() => Review, (review) => review.user)
   reviews: Review[];
+
+  @ApiProperty({
+    example: ['order1', 'order2'],
+    description: 'User orders',
+  })
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 
   @BeforeInsert()
   checkFieldsBeforeInsert() {
