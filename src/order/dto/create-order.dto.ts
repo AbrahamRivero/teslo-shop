@@ -3,7 +3,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsIn,
+  IsInt,
   IsOptional,
+  IsPositive,
   IsString,
   MinLength,
 } from 'class-validator';
@@ -19,6 +21,18 @@ export class CreateOrderDto {
   shippingAddress: string;
 
   @ApiProperty({
+    example: 0,
+    description: 'Discount amount',
+    default: 0,
+    required: false,
+    nullable: true,
+  })
+  @IsInt()
+  @IsPositive()
+  @IsOptional()
+  discount?: number;
+
+  @ApiProperty({
     type: 'string',
     example: 'Credit Card',
     description: 'Payment method',
@@ -29,6 +43,13 @@ export class CreateOrderDto {
   @IsIn(['usd', 'euro', 'cup', 'card'])
   @IsOptional()
   paymentMethod_: string;
+
+  @ApiProperty({
+    example: ['pending', 'cancelled', 'completed'],
+    description: 'Order status',
+    default: 'pending',
+  })
+  orderStatus: string;
 
   @ApiProperty({
     type: 'array',

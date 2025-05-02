@@ -74,6 +74,21 @@ export class OrderService {
     }));
   }
 
+  async findUserOffers(
+    paginationDto: PaginationDto,
+    userId: string,
+  ): Promise<Order[]> {
+    const { limit, offset } = paginationDto;
+
+    const orders = await this.orderRepository.find({
+      where: { user: { id: userId } },
+      take: limit,
+      skip: offset,
+    });
+
+    return orders;
+  }
+
   async findOne(id: string) {
     const order = await this.orderRepository.findOneBy({
       id,

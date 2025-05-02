@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Controller, Post, Body, Get } from '@nestjs/common';
 import {
   ApiOperation,

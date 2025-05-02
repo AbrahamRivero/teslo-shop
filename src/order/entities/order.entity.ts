@@ -23,18 +23,6 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ApiProperty({ example: 0, description: 'Subtotal amount', default: 0 })
-  @Column('float', { default: 0 })
-  subTotal: number;
-
-  @ApiProperty({ example: 0, description: 'Discount amount', default: 0 })
-  @Column('float', { default: 0 })
-  discount: number;
-
-  @ApiProperty({ example: 0, description: 'Total amount', default: 0 })
-  @Column('float', { default: 0 })
-  total: number;
-
   @ApiProperty({
     example: '123 Main St, Anytown, USA',
     description: 'Shipping address details',
@@ -42,17 +30,26 @@ export class Order {
   @Column('text')
   shippingAddress: string;
 
+  @ApiProperty({
+    example: 0,
+    description: 'Discount amount',
+    default: 0,
+    required: false,
+  })
+  @Column('float', { default: 0 })
+  discount?: number;
+
   @ApiProperty({ example: 'Credit Card', description: 'Payment method' })
   @Column('text', { default: 'cup' })
   paymentMethod: string;
 
   @ApiProperty({
-    example: false,
-    description: 'Order payment status',
-    default: false,
+    example: ['pending', 'cancelled', 'completed'],
+    description: 'Order status',
+    default: 'pending',
   })
-  @Column('bool', { default: false })
-  isPaid: boolean;
+  @Column('text', { default: 'pending' })
+  orderStatus: string;
 
   @ApiProperty({
     description: 'Customer who placed the order',
