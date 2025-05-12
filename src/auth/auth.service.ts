@@ -49,7 +49,17 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: { email: true, password: true, id: true },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        fullName: true,
+        roles: true,
+        isActive: true,
+        products: true,
+        reviews: true,
+        orders: true,
+      },
     });
 
     if (!user)
@@ -58,8 +68,10 @@ export class AuthService {
     if (!compareSync(password, user.password))
       throw new UnauthorizedException('Credentials are not valid (password)');
 
+    const { password: _, ...userData } = user;
+
     return {
-      ...user,
+      ...userData,
       token: this.getJwtToken({ id: user.id }),
     };
   }

@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { ProductImage } from './product-image.entity';
 import { User } from 'src/auth/entities/user.entity';
+import { Review } from 'src/reviews/entities/review.entity';
 
 @Entity({ name: 'products' })
 export class Product {
@@ -62,19 +63,32 @@ export class Product {
   @Column('text')
   gender: string;
 
-  @ApiProperty({ example: ['tag1', 'tag2'], description: 'Product tags' })  
+  @ApiProperty({ example: ['tag1', 'tag2'], description: 'Product tags' })
   @Column('text', { array: true, default: [] })
   tags: string[];
 
   @ManyToOne(() => User, (user) => user.products, { eager: true })
   user: User;
 
-  @ApiProperty({ example: ['tag1.jpg', 'tag2.jpg'], description: 'Product images' })
+  @ApiProperty({
+    example: ['tag1.jpg', 'tag2.jpg'],
+    description: 'Product images',
+  })
   @OneToMany(() => ProductImage, (productImage) => productImage.product, {
     cascade: true,
     eager: true,
   })
   images?: ProductImage[];
+
+  @ApiProperty({
+    example: ['review1', 'review2'],
+    description: 'Product reviews',
+  })
+  @OneToMany(() => Review, (review) => review.product, {
+    cascade: true,
+    eager: true,
+  })
+  reviews?: Review[];
 
   @BeforeInsert()
   @BeforeUpdate()
