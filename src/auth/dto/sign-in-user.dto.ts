@@ -27,8 +27,7 @@ export class SignInUserDto {
   @MinLength(6)
   @MaxLength(50)
   @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message:
-      'The password must have a Uppercase, lowercase letter and a number',
+    message: 'La contraseña debe tener una letra mayúscula, una letra minúscula y un número.',
   })
   password: string;
 }

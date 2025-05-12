@@ -22,7 +22,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: 'Sign up a new user' })
-  @ApiCreatedResponse({ description: 'User created successfully', type: UserWithOutPassword })
+  @ApiCreatedResponse({
+    description: 'User created successfully',
+    type: UserWithOutPassword,
+  })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiBody({ type: SignUpUserDto })
   @Post('sign-up')
@@ -31,8 +34,11 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Sign in a user' })
-  @ApiOkResponse({ description: 'User signed in successfully', type: UserWithOutPassword })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiOkResponse({
+    description: 'User signed in successfully',
+    type: UserWithOutPassword,
+  })
+  @ApiBadRequestResponse({ description: 'Ha ocurrido un error inesperado.' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiBody({ type: SignInUserDto })
   @Post('sign-in')
