@@ -3,34 +3,56 @@ import {
   BadRequestException,
   Controller,
   Get,
-  Param,
   Post,
-  Res,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { FilesService } from './files.service';
+
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { fileFilter, fileNamer } from './helpers';
-import { Response } from 'express';
-import { ConfigService } from '@nestjs/config';
-import { ApiTags, ApiOperation, ApiOkResponse, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { fileFilter } from './helpers/fileFilter.helper';
+
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiBody,
+  ApiConsumes,
+  ApiQuery,
+} from '@nestjs/swagger';
+import { UploadcareService } from './uploadcare.service';
 
 @ApiTags('Files')
 @Controller('files')
 export class FilesController {
-  constructor(
-    private readonly filesService: FilesService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly uploadcareService: UploadcareService) {}
 
-  @ApiOperation({ summary: 'Get product image' })
-  @ApiOkResponse({ description: 'Product image' })
-  @Get(':products/:imageName')
-  getProductImage(@Res() res: Response, @Param('imageName') imageName: string) {
-    const path = this.filesService.getStaticProductImage(imageName);
-    res.sendFile(path);
+  @ApiOperation({ summary: 'Get optimized image URL' })
+  @ApiOkResponse({ description: 'Optimized image URL' })
+  @ApiQuery({ name: 'width', required: false, type: Number })
+  @ApiQuery({ name: 'height', required: false, type: Number })
+  @ApiQuery({ name: 'format', required: false, enum: ['jpeg', 'png', 'webp'] })
+  @ApiQuery({ name: 'quality', required: false, type: Number })
+  @Get('optimize')
+  getOptimizedImageUrl(
+    @Query('url') url: string,
+    @Query('width') width?: number,
+    @Query('height') height?: number,
+    @Query('format') format?: 'jpeg' | 'png' | 'webp',
+    @Query('quality') quality?: number,
+  ) {
+    if (!url) {
+      throw new BadRequestException('Image URL is required');
+    }
+
+    return {
+      optimizedUrl: this.uploadcareService.getOptimizedUrl(url, {
+        width,
+        height,
+        format,
+        quality,
+      }),
+    };
   }
 
   @ApiOperation({ summary: 'Upload product images' })
@@ -44,18 +66,20 @@ export class FilesController {
     FileInterceptor('file', {
       fileFilter: fileFilter,
       limits: { fileSize: 10 * 1024 * 1024 },
-      storage: diskStorage({
-        destination: './static/uploads',
-        filename: fileNamer,
-      }),
     }),
   )
-  uploadProductImage(@UploadedFile() file: Express.Multer.File) {
+  async uploadProductImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file provided');
 
-    const secureUrl =
-      this.configService.get('HOST_API') + '/files/products/' + file.filename;
+    const cdnUrl = await this.uploadcareService.uploadFile(file);
 
-    return { secureUrl };
+    return {
+      secureUrl: cdnUrl,
+      optimizedUrl: this.uploadcareService.getOptimizedUrl(cdnUrl, {
+        width: 800,
+        format: 'webp',
+        quality: 80,
+      }),
+    };
   }
 }

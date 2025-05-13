@@ -1,8 +1,4 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { BadRequestException } from '@nestjs/common';
 
@@ -31,7 +27,14 @@ export const fileFilter = (
   const fileExtension = mimeParts.length > 1 ? mimeParts[1].toLowerCase() : '';
 
   // Definir extensiones válidas
-  const validExtensions = new Set(['jpg', 'jpeg', 'png', 'gif', 'avif', 'webp']);
+  const validExtensions = new Set([
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'avif',
+    'webp',
+  ]);
 
   // Verificar si la extensión es válida
   if (!validExtensions.has(fileExtension)) {

@@ -18,7 +18,7 @@ import { OrderModule } from './order/order.module';
       type: 'postgres',
       url: process.env.DB_HOST,
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
     }),
     ProductsModule,
     CommonModule,
