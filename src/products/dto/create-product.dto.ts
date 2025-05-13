@@ -9,6 +9,7 @@ import {
   IsPositive,
   IsString,
   MinLength,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateProductDto {
@@ -96,4 +97,17 @@ export class CreateProductDto {
   @IsArray()
   @IsOptional()
   images?: string[];
+
+  @ApiProperty({
+    description: 'IDs de productos relacionados',
+    nullable: true,
+    required: false,
+    example: [
+      '2359aaeb-c8ec-451c-b618-a1446c305057',
+      '2359aaeb-c8ec-451c-b618-a1446c305058',
+    ],
+  })
+  @IsArray()
+  @IsUUID('4', { each: true })
+  relatedProductIds: string[];
 }
