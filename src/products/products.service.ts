@@ -10,7 +10,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, In } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import {
+  AvailabilityStatus,
+  PaginationDto,
+} from 'src/common/dto/pagination.dto';
 import { CreateProductFavoriteDto } from './dto/create-product-favorite.dto';
 
 import { validate as isUUID } from 'uuid';
@@ -62,19 +65,103 @@ export class ProductsService {
   }
 
   async findAll(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0 } = paginationDto;
+    const {
+      limit = 10,
+      offset = 0,
+      sortBy,
+      availability,
+      minPrice,
+      maxPrice,
+      colors,
+      sizes,
+      tags,
+    } = paginationDto;
 
-    const products = await this.productRepository.find({
-      take: limit,
-      skip: offset,
-      relations: ['images', 'relatedProducts'],
-    });
+    const queryBuilder = this.productRepository.createQueryBuilder('product');
 
-    return products.map(({ images, relatedProducts, ...rest }) => ({
-      ...rest,
-      images: images?.map((image) => image.url),
-      relatedProducts,
-    }));
+    // Apply filters
+    if (availability !== undefined) {
+      if (availability === AvailabilityStatus.Available) {
+        queryBuilder.andWhere('product.stock > 0');
+      } else if (availability === AvailabilityStatus.OutOfStock) {
+        queryBuilder.andWhere('product.stock <= 0');
+      }
+    }
+
+    if (minPrice !== undefined) {
+      queryBuilder.andWhere('product.price >= :minPrice', { minPrice });
+    }
+
+    if (maxPrice !== undefined) {
+      queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice });
+    }
+
+    if (colors) {
+      const colorArray = Array.isArray(colors) ? colors : [colors];
+      queryBuilder.andWhere('product.colors && :colors', {
+        colors: colorArray,
+      });
+    }
+
+    if (sizes) {
+      const sizeArray = Array.isArray(sizes) ? sizes : [sizes];
+      queryBuilder.andWhere('product.sizes && :sizes', { sizes: sizeArray });
+    }
+
+    if (tags) {
+      const tagArray = Array.isArray(tags) ? tags : [tags];
+      queryBuilder.andWhere('product.tags && :tags', { tags: tagArray });
+    }
+
+    // Get total count before pagination
+    const total = await queryBuilder.getCount();
+
+    // Apply sorting
+    if (sortBy) {
+      switch (sortBy) {
+        case 'title_asc':
+          queryBuilder.orderBy('product.title', 'ASC');
+          break;
+        case 'title_desc':
+          queryBuilder.orderBy('product.title', 'DESC');
+          break;
+        case 'price_asc':
+          queryBuilder.orderBy('product.price', 'ASC');
+          break;
+        case 'price_desc':
+          queryBuilder.orderBy('product.price', 'DESC');
+          break;
+      }
+    } else {
+      queryBuilder.orderBy('product.title', 'ASC');
+    }
+
+    // Apply pagination
+    queryBuilder.take(limit).skip(offset);
+
+    // Load relations
+    queryBuilder.leftJoinAndSelect('product.images', 'images');
+    queryBuilder.leftJoinAndSelect(
+      'product.relatedProducts',
+      'relatedProducts',
+    );
+    queryBuilder.leftJoinAndSelect('product.reviews', 'reviews');
+
+    const products = await queryBuilder.getMany();
+
+    return {
+      products: products.map(
+        ({ images, relatedProducts, reviews, ...rest }) => ({
+          ...rest,
+          images: images?.map((image) => image.url),
+          relatedProducts,
+          reviews,
+        }),
+      ),
+      total,
+      offset,
+      limit,
+    };
   }
 
   async findOne(term: string) {

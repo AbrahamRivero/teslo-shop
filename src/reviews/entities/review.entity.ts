@@ -2,7 +2,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from 'src/auth/entities/user.entity';
 import { Product } from 'src/products/entities/product.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
 
 @Entity({ name: 'reviews' })
 export class Review {
@@ -28,6 +28,13 @@ export class Review {
   })
   @Column('int')
   rating: number;
+
+  @ApiProperty({
+    example: '2024-03-20T15:30:00Z',
+    description: 'Review creation date',
+  })
+  @CreateDateColumn()
+  createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.reviews, { onDelete: 'CASCADE' })
   user: User;

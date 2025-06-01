@@ -47,7 +47,24 @@ export class ReviewsService {
       take: limit,
       skip: offset,
       relations: { user: true, product: true },
-      order: { rating: 'DESC' },
+      order: { createdAt: 'desc' },
+      select: {
+        id: true,
+        comment: true,
+        rating: true,
+        createdAt: true,
+        user: {
+          fullName: true,
+          email: true,
+        },
+        product: {
+          id: true,
+          title: true,
+          price: true,
+          slug: true,
+          images: true,
+        },
+      },
     });
 
     return reviews;
@@ -65,7 +82,7 @@ export class ReviewsService {
     const { limit = 10, offset = 0 } = paginationDto;
 
     await this.productsService.findOne(productId);
-    
+
     const reviews = await this.reviewRepository.find({
       where: { product: { id: productId } },
       take: limit,
