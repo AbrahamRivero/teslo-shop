@@ -5,6 +5,7 @@ import { initialData } from './data/seed-data';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/auth/entities/user.entity';
+import { CreateProductDto } from 'src/products/dto/create-product.dto';
 @Injectable()
 export class SeedService {
   constructor(
@@ -50,9 +51,12 @@ export class SeedService {
     const products = initialData.products;
 
     const insertPromises: Promise<any>[] = [];
-
     products.forEach((product) => {
-      insertPromises.push(this.productsService.create(product, user));
+      const createProductDto: CreateProductDto = {
+        ...product,
+        relatedProductIds: [],
+      };
+      insertPromises.push(this.productsService.create(createProductDto, user));
     });
 
     await Promise.all(insertPromises);

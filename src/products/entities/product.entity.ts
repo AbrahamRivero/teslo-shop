@@ -8,10 +8,13 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { ProductImage } from './product-image.entity';
 import { User } from 'src/auth/entities/user.entity';
 import { Review } from 'src/reviews/entities/review.entity';
+import { ProductFavorites } from './product-favorites.entity';
 
 @Entity({ name: 'products' })
 export class Product {
@@ -89,6 +92,25 @@ export class Product {
     eager: true,
   })
   reviews?: Review[];
+
+  @ApiProperty({
+    example: ['favorite1', 'favorite2'],
+    description: 'Product favorites',
+  })
+  @OneToMany(() => ProductFavorites, (favorite) => favorite.product)
+  favorites?: ProductFavorites[];
+
+  @ApiProperty({
+    example: ['relatedProduct1', 'relatedProduct2'],
+    description: 'Productos relacionados',
+  })
+  @ManyToMany(() => Product)
+  @JoinTable({
+    name: 'product_related',
+    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'related_product_id', referencedColumnName: 'id' },
+  })
+  relatedProducts: Product[];
 
   @BeforeInsert()
   @BeforeUpdate()

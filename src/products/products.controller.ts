@@ -26,6 +26,7 @@ import {
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { CreateProductFavoriteDto } from './dto/create-product-favorite.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/interfaces';
@@ -69,6 +70,16 @@ export class ProductsController {
     return this.productsService.findOnePlain(term);
   }
 
+  @ApiOperation({ summary: 'Obtener productos relacionados' })
+  @ApiOkResponse({
+    description: 'Productos relacionados encontrados',
+    type: [Product],
+  })
+  @Get(':id/related')
+  getRelatedProducts(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productsService.getRelatedProducts(id);
+  }
+
   @ApiOperation({ summary: 'Update a product' })
   @ApiOkResponse({ description: 'Product updated', type: Product })
   @ApiBody({ type: UpdateProductDto })
@@ -90,5 +101,68 @@ export class ProductsController {
   @Auth(ValidRoles.admin, ValidRoles.superUser)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.productsService.remove(id);
+  }
+
+  @ApiOperation({ summary: 'Add a product to favorites' })
+  @ApiCreatedResponse({
+    description: 'Product added to favorites successfully',
+  })
+  @ApiBody({ type: CreateProductFavoriteDto })
+  @ApiBearerAuth()
+  @Post('favorites')
+  @Auth()
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  addToFavorites(
+    @Body() createProductFavoriteDto: CreateProductFavoriteDto,
+    @GetUser() user: User,
+  ) {
+    return this.productsService.addToFavorites(createProductFavoriteDto, user);
+  }
+
+  @ApiOperation({ summary: 'Remove a product from favorites' })
+  @ApiOkResponse({
+    description: 'Product removed from favorites successfully',
+  })
+  @ApiBearerAuth()
+  @Delete('favorites/:productId')
+  @Auth()
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  removeFromFavorites(
+    @Param('productId', ParseUUIDPipe) productId: string,
+    @GetUser() user: User,
+  ) {
+    return this.productsService.removeFromFavorites(productId, user);
+  }
+
+  @ApiOperation({ summary: 'Get user favorites' })
+  @ApiOkResponse({
+    description: 'User favorites retrieved successfully',
+    type: [Product],
+  })
+  @ApiBearerAuth()
+  @Get('favorites')
+  @Auth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  getUserFavorites(@GetUser() user: User) {
+    return this.productsService.getUserFavorites(user);
+  }
+
+  @ApiOperation({ summary: 'Check if a product is in favorites' })
+  @ApiOkResponse({
+    description: 'Favorite status retrieved successfully',
+  })
+  @ApiBearerAuth()
+  @Get('favorites/:productId/check')
+  @Auth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  isProductInFavorites(
+    @Param('productId', ParseUUIDPipe) productId: string,
+    @GetUser() user: User,
+  ) {
+    return this.productsService.isProductInFavorites(productId, user);
   }
 }

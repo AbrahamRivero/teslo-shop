@@ -4,6 +4,7 @@ import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Product } from 'src/products/entities';
 import { Review } from 'src/reviews/entities/review.entity';
 import { Order } from 'src/order/entities/order.entity';
+import { ProductFavorites } from 'src/products/entities/product-favorites.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -84,6 +85,13 @@ export class User {
   })
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
+
+  @ApiProperty({
+    example: ['favorite1', 'favorite2'],
+    description: 'User favorite products',
+  })
+  @OneToMany(() => ProductFavorites, (favorite) => favorite.user)
+  favorites: ProductFavorites[];
 
   @BeforeInsert()
   checkFieldsBeforeInsert() {

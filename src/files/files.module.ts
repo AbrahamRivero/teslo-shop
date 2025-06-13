@@ -1,12 +1,12 @@
 /* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { FilesService } from './files.service';
 import { FilesController } from './files.controller';
+import { UploadcareService } from './uploadcare.service';
 
 @Module({
   controllers: [FilesController],
-  providers: [FilesService],
+  providers: [UploadcareService],
   imports: [ConfigModule],
 })
 export class FilesModule {}
