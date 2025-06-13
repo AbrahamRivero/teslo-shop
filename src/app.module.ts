@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { MessageWsModule } from './message-ws/message-ws.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { OrderModule } from './order/order.module';
+import { PromotionsModule } from './promotions/promotions.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { OrderModule } from './order/order.module';
     MessageWsModule,
     ReviewsModule,
     OrderModule,
+    PromotionsModule,
   ],
 })
 export class AppModule {}
