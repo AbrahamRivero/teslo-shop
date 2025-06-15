@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   ConflictException,
@@ -72,7 +73,7 @@ export class ProductsService {
       availability,
       minPrice,
       maxPrice,
-      colors,
+      gender,
       sizes,
       tags,
     } = paginationDto;
@@ -96,13 +97,6 @@ export class ProductsService {
       queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice });
     }
 
-    if (colors) {
-      const colorArray = Array.isArray(colors) ? colors : [colors];
-      queryBuilder.andWhere('product.colors && :colors', {
-        colors: colorArray,
-      });
-    }
-
     if (sizes) {
       const sizeArray = Array.isArray(sizes) ? sizes : [sizes];
       queryBuilder.andWhere('product.sizes && :sizes', { sizes: sizeArray });
@@ -111,6 +105,10 @@ export class ProductsService {
     if (tags) {
       const tagArray = Array.isArray(tags) ? tags : [tags];
       queryBuilder.andWhere('product.tags && :tags', { tags: tagArray });
+    }
+
+    if (gender) {
+      queryBuilder.andWhere('product.gender = :gender', { gender });
     }
 
     // Get total count before pagination
@@ -366,5 +364,54 @@ export class ProductsService {
     });
 
     return relatedProducts;
+  }
+
+  async getMostFavoritedProducts() {
+    interface MostFavoritedProduct {
+      id: string;
+      title: string;
+      price: number;
+      slug: string;
+      stock: number;
+      sizes: string[];
+      gender: string;
+      tags: string[];
+      favoritesCount: number;
+      images?: string[];
+    }
+
+    const mostFavoritedProducts = (await this.productFavoritesRepository
+      .createQueryBuilder('favorite')
+      .select('product.id', 'id')
+      .addSelect('product.title', 'title')
+      .addSelect('product.price', 'price')
+      .addSelect('product.slug', 'slug')
+      .addSelect('product.stock', 'stock')
+      .addSelect('product.sizes', 'sizes')
+      .addSelect('product.gender', 'gender')
+      .addSelect('product.tags', 'tags')
+      .addSelect('COUNT(favorite.id)', 'favoritesCount')
+      .innerJoin('favorite.product', 'product')
+      .groupBy('product.id')
+      .orderBy('favoritesCount', 'DESC')
+      .limit(10)
+      .getRawMany()) as MostFavoritedProduct[];
+
+    // Obtener las imágenes para cada producto
+    const productsWithImages = await Promise.all(
+      mostFavoritedProducts.map(async (product) => {
+        const images = await this.productImageRepository.find({
+          where: { product: { id: product.id } },
+          select: ['url'],
+        });
+
+        return {
+          ...product,
+          images: images.map((img) => img.url),
+        };
+      }),
+    );
+
+    return productsWithImages;
   }
 }
