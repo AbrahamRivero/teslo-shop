@@ -65,12 +65,12 @@ export class PaginationDto {
   maxPrice?: number;
 
   @ApiPropertyOptional({
-    description: 'Colors of items to return',
+    description: 'Gender of items to return',
     nullable: true,
-    examples: ['red', 'blue', 'green'],
+    example: 'men',
   })
   @IsOptional()
-  colors?: string | string[];
+  gender?: string;
 
   @ApiPropertyOptional({
     description: 'Sizes of items to return',

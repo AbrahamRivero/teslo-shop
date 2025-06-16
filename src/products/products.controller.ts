@@ -165,4 +165,14 @@ export class ProductsController {
   ) {
     return this.productsService.isProductInFavorites(productId, user);
   }
+
+  @ApiOperation({ summary: 'Get most favorited products' })
+  @ApiOkResponse({
+    description: 'Most favorited products retrieved successfully',
+    type: [Product],
+  })
+  @Get('most-favorited')
+  getMostFavoritedProducts() {
+    return this.productsService.getMostFavoritedProducts();
+  }
 }
