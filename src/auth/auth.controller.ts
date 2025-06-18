@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Controller, Post, Body, Get } from '@nestjs/common';
 import {
   ApiOperation,
@@ -12,7 +13,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
-import { SignUpUserDto, SignInUserDto } from './dto';
+import { SignUpUserDto, SignInUserDto, RefreshTokenDto } from './dto';
 import { User, UserWithOutPassword } from './entities/user.entity';
 import { Auth } from './decorators';
 
@@ -55,5 +56,13 @@ export class AuthController {
   @Auth()
   checkAuthStatus(@GetUser() user: User) {
     return this.authService.checkAuthStatus(user);
+  }
+
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiOkResponse({ description: 'Access token refreshed' })
+  @ApiBadRequestResponse({ description: 'Refresh token inválido' })
+  @Post('refresh-token')
+  refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshTokenDto);
   }
 }
