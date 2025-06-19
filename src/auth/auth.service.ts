@@ -6,6 +6,7 @@ import {
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -103,20 +104,33 @@ export class AuthService {
 
   async refreshToken(refreshTokenDto: RefreshTokenDto) {
     const { refreshToken } = refreshTokenDto;
+    if (!refreshToken || typeof refreshToken !== 'string') {
+      throw new BadRequestException('El refresh token es requerido y debe ser un string.');
+    }
     let payload: JwtPayload;
     try {
       payload = this.jwtService.verify(refreshToken, { secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret' });
     } catch (e) {
       throw new UnauthorizedException('Refresh token inválido.');
     }
-    const user = await this.userRepository.findOne({ where: { id: payload.id, refreshToken } });
+    let user: User | null = null;
+    try {
+      user = await this.userRepository.findOne({ where: { id: payload.id, refreshToken } });
+    } catch (e) {
+      throw new InternalServerErrorException('Error al buscar el usuario en la base de datos.');
+    }
     if (!user || !user.isActive) {
       throw new UnauthorizedException('Refresh token inválido o usuario inactivo.');
     }
     // Generar nuevo refresh token y access token
-    const newRefreshToken = this.getJwtRefreshToken({ id: user.id });
-    user.refreshToken = newRefreshToken;
-    await this.userRepository.save(user);
+    let newRefreshToken: string;
+    try {
+      newRefreshToken = this.getJwtRefreshToken({ id: user.id });
+      user.refreshToken = newRefreshToken;
+      await this.userRepository.save(user);
+    } catch (e) {
+      throw new InternalServerErrorException('Error al guardar el nuevo refresh token.');
+    }
     return {
       token: this.getJwtToken({ id: user.id }),
       refreshToken: newRefreshToken,
