@@ -93,6 +93,14 @@ export class User {
   @OneToMany(() => ProductFavorites, (favorite) => favorite.user)
   favorites: ProductFavorites[];
 
+  @ApiProperty({
+    example: 'refresh_token_example',
+    description: 'Refresh token actual del usuario',
+    required: false,
+  })
+  @Column('text', { nullable: true })
+  refreshToken?: string;
+
   @BeforeInsert()
   checkFieldsBeforeInsert() {
     this.email = this.email.toLowerCase().trim();

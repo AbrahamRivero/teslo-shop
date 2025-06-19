@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
@@ -65,7 +66,7 @@ export class ProductsService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto, user?: User) {
     const {
       limit = 10,
       offset = 0,
@@ -129,6 +130,12 @@ export class ProductsService {
         case 'price_desc':
           queryBuilder.orderBy('product.price', 'DESC');
           break;
+        case 'newest':
+          queryBuilder.orderBy('product.createdAt', 'DESC');
+          break;
+        case 'oldest':
+          queryBuilder.orderBy('product.createdAt', 'ASC');
+          break;
       }
     } else {
       queryBuilder.orderBy('product.title', 'ASC');
@@ -147,6 +154,17 @@ export class ProductsService {
 
     const products = await queryBuilder.getMany();
 
+    // Si hay un usuario, verificar los favoritos
+    let favoriteProducts: string[] = [];
+    if (user) {
+      const favorites = await this.productFavoritesRepository.find({
+        where: { user: { id: user.id } },
+        select: { product: { id: true } },
+        relations: { product: true },
+      });
+      favoriteProducts = favorites.map((fav) => fav.product.id);
+    }
+
     return {
       products: products.map(
         ({ images, relatedProducts, reviews, ...rest }) => ({
@@ -154,6 +172,7 @@ export class ProductsService {
           images: images?.map((image) => image.url),
           relatedProducts,
           reviews,
+          isFavorite: user ? favoriteProducts.includes(rest.id) : false,
         }),
       ),
       total,
@@ -173,7 +192,7 @@ export class ProductsService {
     } else {
       const queryBuilder = this.productRepository.createQueryBuilder('prod');
       product = await queryBuilder
-        .where('UPPER(title) =:title or slug=:slug', {
+        .where('UPPER(prod.title) =:title or prod.slug=:slug', {
           title: term.toUpperCase(),
           slug: term.toLowerCase(),
         })
@@ -190,17 +209,24 @@ export class ProductsService {
     return product;
   }
 
-  async findOnePlain(term: string) {
+  async findOnePlain(term: string, user?: User) {
     const {
       images = [],
       relatedProducts = [],
       ...rest
     } = await this.findOne(term);
 
+    // Verificar si el producto está en favoritos
+    let isFavorite = false;
+    if (user && user.id) {
+      isFavorite = await this.isProductInFavorites(rest.id, user);
+    }
+
     return {
       ...rest,
       images: images.map((img) => img.url),
       relatedProducts,
+      isFavorite,
     };
   }
 
@@ -366,7 +392,7 @@ export class ProductsService {
     return relatedProducts;
   }
 
-  async getMostFavoritedProducts() {
+  async getMostFavoritedProducts(user?: User) {
     interface MostFavoritedProduct {
       id: string;
       title: string;
@@ -378,6 +404,7 @@ export class ProductsService {
       tags: string[];
       favoritesCount: number;
       images?: string[];
+      isFavorite?: boolean;
     }
 
     const mostFavoritedProducts = (await this.productFavoritesRepository
@@ -393,7 +420,7 @@ export class ProductsService {
       .addSelect('COUNT(favorite.id)', 'favoritesCount')
       .innerJoin('favorite.product', 'product')
       .groupBy('product.id')
-      .orderBy('favoritesCount', 'DESC')
+      .orderBy('COUNT(favorite.id)', 'DESC')
       .limit(10)
       .getRawMany()) as MostFavoritedProduct[];
 
@@ -405,9 +432,16 @@ export class ProductsService {
           select: ['url'],
         });
 
+        // Verificar si el producto está en favoritos del usuario
+        let isFavorite = false;
+        if (user && user.id) {
+          isFavorite = await this.isProductInFavorites(product.id, user);
+        }
+
         return {
           ...product,
           images: images.map((img) => img.url),
+          isFavorite,
         };
       }),
     );

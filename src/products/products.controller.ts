@@ -28,7 +28,12 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateProductFavoriteDto } from './dto/create-product-favorite.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { Auth, GetUser } from 'src/auth/decorators';
+import {
+  Auth,
+  GetUser,
+  GetUserOptional,
+  OptionalAuth,
+} from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/interfaces';
 import { User } from 'src/auth/entities/user.entity';
 import { Product } from './entities';
@@ -58,16 +63,32 @@ export class ProductsController {
   @ApiOkResponse({ description: 'Products found', type: [Product] })
   @ApiNotFoundResponse({ description: 'Products not found' })
   @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
-    return this.productsService.findAll(paginationDto);
+  @OptionalAuth()
+  findAll(
+    @Query() paginationDto: PaginationDto,
+    @GetUserOptional() user?: User,
+  ) {
+    return this.productsService.findAll(paginationDto, user);
+  }
+
+  @ApiOperation({ summary: 'Get most favorited products' })
+  @ApiOkResponse({
+    description: 'Most favorited products retrieved successfully',
+    type: [Product],
+  })
+  @Get('most-favorited')
+  @OptionalAuth()
+  getMostFavoritedProducts(@GetUserOptional() user?: User) {
+    return this.productsService.getMostFavoritedProducts(user);
   }
 
   @ApiOperation({ summary: 'Get a product by term' })
   @ApiOkResponse({ description: 'Product found', type: Product })
   @ApiNotFoundResponse({ description: 'Product not found' })
   @Get(':term')
-  findOne(@Param('term') term: string) {
-    return this.productsService.findOnePlain(term);
+  @OptionalAuth()
+  findOne(@Param('term') term: string, @GetUserOptional() user?: User) {
+    return this.productsService.findOnePlain(term, user);
   }
 
   @ApiOperation({ summary: 'Obtener productos relacionados' })
@@ -164,15 +185,5 @@ export class ProductsController {
     @GetUser() user: User,
   ) {
     return this.productsService.isProductInFavorites(productId, user);
-  }
-
-  @ApiOperation({ summary: 'Get most favorited products' })
-  @ApiOkResponse({
-    description: 'Most favorited products retrieved successfully',
-    type: [Product],
-  })
-  @Get('most-favorited')
-  getMostFavoritedProducts() {
-    return this.productsService.getMostFavoritedProducts();
   }
 }
