@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToMany,
   JoinTable,
+  CreateDateColumn,
 } from 'typeorm';
 import { ProductImage } from './product-image.entity';
 import { User } from 'src/auth/entities/user.entity';
@@ -111,6 +112,13 @@ export class Product {
     inverseJoinColumn: { name: 'related_product_id', referencedColumnName: 'id' },
   })
   relatedProducts: Product[];
+
+  @ApiProperty({
+    example: '2024-03-20T12:00:00Z',
+    description: 'Fecha de creación del producto',
+  })
+  @CreateDateColumn()
+  createdAt: Date;
 
   @BeforeInsert()
   @BeforeUpdate()

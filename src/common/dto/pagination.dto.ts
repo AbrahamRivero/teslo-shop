@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { ApiPropertyOptional, ApiSchema } from '@nestjs/swagger';
+import { ApiPropertyOptional, ApiSchema, ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsPositive, IsString, Min } from 'class-validator';
 
 export enum AvailabilityStatus {
@@ -27,11 +27,10 @@ export class PaginationDto {
   @Min(0)
   offset?: number;
 
-  @ApiPropertyOptional({
-    description: 'Sort by',
-    nullable: true,
-    default: 'createdAt',
-    examples: ['name_asc', 'name_desc', 'price_asc', 'price_desc'],
+  @ApiProperty({
+    required: false,
+    description:
+      'Campo para ordenar: title_asc, title_desc, price_asc, price_desc, newest (más recientes primero), oldest (más antiguos primero)',
   })
   @IsOptional()
   @IsString()

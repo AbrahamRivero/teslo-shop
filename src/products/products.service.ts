@@ -130,6 +130,12 @@ export class ProductsService {
         case 'price_desc':
           queryBuilder.orderBy('product.price', 'DESC');
           break;
+        case 'newest':
+          queryBuilder.orderBy('product.createdAt', 'DESC');
+          break;
+        case 'oldest':
+          queryBuilder.orderBy('product.createdAt', 'ASC');
+          break;
       }
     } else {
       queryBuilder.orderBy('product.title', 'ASC');
