@@ -136,4 +136,13 @@ export class AuthService {
       expiresIn: '30d',
     });
   }
+
+  async logout(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (user) {
+      user.refreshToken = undefined;
+      await this.userRepository.save(user);
+    }
+    return { message: 'Logout exitoso' };
+  }
 }

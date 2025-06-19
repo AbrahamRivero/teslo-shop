@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Controller, Post, Body, Get } from '@nestjs/common';
+
+import { Controller, Post, Body, Get, Response, Request } from '@nestjs/common';
 import {
   ApiOperation,
   ApiTags,
@@ -13,9 +14,10 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
-import { SignUpUserDto, SignInUserDto, RefreshTokenDto } from './dto';
+import { SignUpUserDto, SignInUserDto } from './dto';
 import { User, UserWithOutPassword } from './entities/user.entity';
 import { Auth } from './decorators';
+import { Response as Res } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -30,8 +32,24 @@ export class AuthController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiBody({ type: SignUpUserDto })
   @Post('sign-up')
-  signUp(@Body() signUpUserDto: SignUpUserDto) {
-    return this.authService.signUp(signUpUserDto);
+  async signUp(@Body() signUpUserDto: SignUpUserDto, @Response() res: Res) {
+    try {
+      const data = await this.authService.signUp(signUpUserDto);
+      if (data && data.refreshToken) {
+        res.cookie('refreshToken', data.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+        });
+        const { refreshToken: _, ...rest } = data;
+        res.json(rest);
+        return;
+      }
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
   }
 
   @ApiOperation({ summary: 'Sign in a user' })
@@ -43,8 +61,24 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiBody({ type: SignInUserDto })
   @Post('sign-in')
-  signIp(@Body() signInUserDto: SignInUserDto) {
-    return this.authService.signIn(signInUserDto);
+  async signIp(@Body() signInUserDto: SignInUserDto, @Response() res: Res) {
+    try {
+      const data = await this.authService.signIn(signInUserDto);
+      if (data && data.refreshToken) {
+        res.cookie('refreshToken', data.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+        });
+        const { refreshToken: _, ...rest } = data;
+        res.json(rest);
+        return;
+      }
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
   }
 
   @ApiBearerAuth()
@@ -62,7 +96,42 @@ export class AuthController {
   @ApiOkResponse({ description: 'Access token refreshed' })
   @ApiBadRequestResponse({ description: 'Refresh token inválido' })
   @Post('refresh-token')
-  refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshToken(refreshTokenDto);
+  async refreshToken(@Response() res: Res, @Request() req: { cookies: { refreshToken?: string } }) {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'No refresh token provided' });
+    }
+    try {
+      const data = await this.authService.refreshToken({ refreshToken });
+      if (data && data.refreshToken) {
+        res.cookie('refreshToken', data.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+        });
+        const { refreshToken: _, ...rest } = data;
+        res.json(rest);
+        return;
+      }
+      res.json(data);
+    } catch (error) {
+      res.status(401).json({ message: 'Refresh token inválido' });
+    }
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Logout user' })
+  @ApiOkResponse({ description: 'Logout successful' })
+  @Post('logout')
+  @Auth()
+  async logout(@GetUser() user: User, @Response() res: Res) {
+    try {
+      await this.authService.logout(user.id);
+      res.clearCookie('refreshToken');
+      res.json({ message: 'Logout exitoso' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error durante el logout' });
+    }
   }
 }
