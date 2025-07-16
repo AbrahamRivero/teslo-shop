@@ -33,4 +33,12 @@ export class CreateReviewDto {
   @Min(1)
   @Max(5)
   rating: number;
+
+  @ApiProperty({
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    description: 'ID del producto asociado a la reseña',
+    required: true,
+  })
+  @IsString()
+  productId: string;
 }

@@ -62,9 +62,11 @@ export class ReviewsController {
 
   @ApiOperation({ summary: 'Get reviews by product id' })
   @ApiOkResponse({ description: 'Reviews found', type: [Review] })
-  @ApiNotFoundResponse({ description: 'Reviews not found or product not found' })
+  @ApiNotFoundResponse({
+    description: 'Reviews not found or product not found',
+  })
   @ApiQuery({ type: PaginationDto })
-  @Get(':productId')
+  @Get('product/:productId')
   findByProductId(
     @Param('productId', ParseUUIDPipe) productId: string,
     @Query() paginationDto: PaginationDto,
