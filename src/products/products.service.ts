@@ -197,6 +197,7 @@ export class ProductsService {
           slug: term.toLowerCase(),
         })
         .leftJoinAndSelect('prod.images', 'prodImages')
+        .leftJoinAndSelect('prod.reviews', 'prodReviews')
         .leftJoinAndSelect('prod.relatedProducts', 'relatedProducts')
         .getOne();
     }
