@@ -7,6 +7,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
@@ -28,10 +29,15 @@ export class ReviewsService {
   ) {}
 
   async create(createReviewDto: CreateReviewDto, user: User) {
+    if (!createReviewDto.productId) {
+      throw new BadRequestException('El productId es requerido');
+    }
+
     try {
       const review = this.reviewRepository.create({
         ...createReviewDto,
         user,
+        product: { id: createReviewDto.productId },
       });
       await this.reviewRepository.save(review);
       return review;
