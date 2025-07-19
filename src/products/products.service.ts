@@ -187,7 +187,7 @@ export class ProductsService {
     if (isUUID(term)) {
       product = await this.productRepository.findOne({
         where: { id: term },
-        relations: ['relatedProducts'],
+        relations: ['relatedProducts', 'reviews', 'reviews.user'],
       });
     } else {
       const queryBuilder = this.productRepository.createQueryBuilder('prod');
@@ -198,6 +198,7 @@ export class ProductsService {
         })
         .leftJoinAndSelect('prod.images', 'prodImages')
         .leftJoinAndSelect('prod.reviews', 'prodReviews')
+        .leftJoinAndSelect('prodReviews.user', 'user')
         .leftJoinAndSelect('prod.relatedProducts', 'relatedProducts')
         .getOne();
     }
