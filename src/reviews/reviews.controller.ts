@@ -31,6 +31,7 @@ import {
 import { Review } from './entities/review.entity';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
+import { Auth } from 'src/auth/decorators';
 @ApiTags('Reviews')
 @Controller('reviews')
 export class ReviewsController {
@@ -47,6 +48,7 @@ export class ReviewsController {
   @ApiBody({ type: CreateReviewDto })
   @ApiBearerAuth()
   @Post()
+  @Auth()
   create(@Body() createReviewDto: CreateReviewDto, @GetUser() user: User) {
     return this.reviewsService.create(createReviewDto, user);
   }
@@ -90,6 +92,7 @@ export class ReviewsController {
   @ApiBody({ type: UpdateReviewDto })
   @ApiBearerAuth()
   @Patch(':id')
+  @Auth()
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateReviewDto: UpdateReviewDto,
