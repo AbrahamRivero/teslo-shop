@@ -52,6 +52,29 @@ export class Order {
   orderStatus: string;
 
   @ApiProperty({
+    example: 'ORD-001',
+    description: 'Unique order number',
+    uniqueItems: true,
+  })
+  @Column({ unique: true })
+  orderNumber: string;
+
+  @ApiProperty({
+    example: 'TRK-001',
+    description: 'Unique tracking number',
+    uniqueItems: true,
+  })
+  @Column({ unique: true })
+  trackingNumber: string;
+
+  @ApiProperty({
+    example: 100.50,
+    description: 'Total order value',
+  })
+  @Column('decimal')
+  totalValue: number;
+
+  @ApiProperty({
     description: 'Customer who placed the order',
     type: () => User,
   })

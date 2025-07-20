@@ -37,6 +37,19 @@ export class OrderService {
     try {
       const { orderItems = [], ...toSave } = createOrderDto;
 
+      let orderNumber: string;
+      let trackingNumber: string;
+
+      do {
+        orderNumber = this.generateOrderNumber();
+      } while (await this.orderRepository.findOne({ where: { orderNumber } }));
+
+      do {
+        trackingNumber = this.generateTrackingNumber();
+      } while (
+        await this.orderRepository.findOne({ where: { trackingNumber } })
+      );
+
       const order = this.orderRepository.create({
         ...toSave,
         orderItems: orderItems.map((item) =>
@@ -45,6 +58,8 @@ export class OrderService {
             quantity: item.quantity,
           }),
         ),
+        orderNumber,
+        trackingNumber,
         user,
       });
 
@@ -169,5 +184,27 @@ export class OrderService {
     } catch (error) {
       this.handleDBExceptions(error);
     }
+  }
+
+  private orderCounter = 1; // Contador para generar números de orden
+
+  generateOrderNumber(): string {
+    return `ORD-${this.randomString(6)}`;
+  }
+
+  private trackingCounter = 1; // Contador para generar números de seguimiento
+
+  generateTrackingNumber(): string {
+    return `TRK-${this.randomString(6)}`;
+  }
+
+  private randomString(length: number): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters[randomIndex];
+    }
+    return result;
   }
 }
