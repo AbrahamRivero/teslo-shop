@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Length,
   MinLength,
 } from 'class-validator';
 
@@ -20,6 +21,26 @@ export class CreateOrderDto {
   @IsString()
   @MinLength(1)
   shippingAddress: string;
+
+  @ApiProperty({
+    example: '52788965',
+    description: 'Receiver phone',
+    nullable: true,
+    required: false,
+  })
+  @IsString()
+  @Length(8, 8, { message: 'El teléfono debe tener 8 dígitos' })
+  phone: string;
+
+  @ApiProperty({
+    example: 'La Habana',
+    description: 'Receiver city',
+  })
+  @IsString()
+  @IsIn(['Matanzas', 'La Habana'], {
+    message: 'Solo se realizan envíos a Matanzas y La Habana',
+  })
+  city: string;
 
   @ApiProperty({
     example: 0,
@@ -35,13 +56,41 @@ export class CreateOrderDto {
 
   @ApiProperty({
     example: 0,
+    description: 'Subtotal order amount',
+    default: 0,
+    required: true,
+  })
+  @IsNumber()
+  @IsPositive()
+  subtotal: number;
+
+  @ApiProperty({
+    example: 0,
+    description: 'Shipping order amount',
+    default: 0,
+    required: true,
+  })
+  @IsNumber()
+  @IsPositive()
+  shipping: number;
+
+  @ApiProperty({
+    example: 0,
     description: 'Total order amount',
     default: 0,
     required: true,
   })
   @IsNumber()
   @IsPositive()
-  totalValue: number;
+  total: number;
+
+  @ApiProperty({
+    example: 'Deben tocar varias veces la puerta...',
+    description: 'Notes details',
+  })
+  @IsString()
+  @Length(0, 500, { message: 'La nota no debe contener más de 500 caracteres' })
+  notes?: string;
 
   @ApiProperty({
     type: 'string',

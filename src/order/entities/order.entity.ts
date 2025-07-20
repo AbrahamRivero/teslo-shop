@@ -31,6 +31,22 @@ export class Order {
   shippingAddress: string;
 
   @ApiProperty({
+    example: '52788965',
+    description: 'Receiver phone',
+    nullable: true,
+    required: false,
+  })
+  @Column('text', { nullable: true })
+  phone: string;
+
+  @ApiProperty({
+    example: 'La Habana',
+    description: 'Receiver city',
+  })
+  @Column('text')
+  city: string;
+
+  @ApiProperty({
     example: 0,
     description: 'Discount amount',
     default: 0,
@@ -68,11 +84,32 @@ export class Order {
   trackingNumber: string;
 
   @ApiProperty({
-    example: 100.50,
+    example: 100.5,
+    description: 'Subtotal order value',
+  })
+  @Column('decimal')
+  subtotal: number;
+
+  @ApiProperty({
+    example: 100.5,
+    description: 'Shipping order value',
+  })
+  @Column('decimal')
+  shipping: number;
+
+  @ApiProperty({
+    example: 100.5,
     description: 'Total order value',
   })
   @Column('decimal')
-  totalValue: number;
+  total: number;
+
+  @ApiProperty({
+    example: 'Deben tocar varias veces la puerta...',
+    description: 'Notes details',
+  })
+  @Column('text')
+  notes?: string;
 
   @ApiProperty({
     description: 'Customer who placed the order',
