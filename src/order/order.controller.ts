@@ -59,12 +59,12 @@ export class OrderController {
     return this.orderService.findAll(paginationDto);
   }
 
-  @ApiOperation({ summary: 'Get all offers for a specific user' })
-  @ApiOkResponse({ description: 'Offers found', type: [Order] })
-  @ApiNotFoundResponse({ description: 'Offers not found' })
-  @Get('user-offers')
-  findUserOffers(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
-    return this.orderService.findUserOffers(paginationDto, user.id);
+  @ApiOperation({ summary: 'Get all orders for a specific user' })
+  @ApiOkResponse({ description: 'Orders found', type: [Order] })
+  @ApiNotFoundResponse({ description: 'Orders not found' })
+  @Get('user-orders')
+  findUserOrders(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
+    return this.orderService.findUserOrders(paginationDto, user.id);
   }
 
   @ApiOperation({ summary: 'Get a order by id' })

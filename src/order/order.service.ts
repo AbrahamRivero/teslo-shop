@@ -90,7 +90,7 @@ export class OrderService {
     }));
   }
 
-  async findUserOffers(
+  async findUserOrders(
     paginationDto: PaginationDto,
     userId: string,
   ): Promise<Order[]> {
