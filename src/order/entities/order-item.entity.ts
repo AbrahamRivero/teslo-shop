@@ -28,4 +28,13 @@ export class OrderItem {
   })
   @Column('int')
   quantity: number;
+
+  @ApiProperty({
+    example: 'XL',
+    description: 'Size of product in this order item',
+    nullable: true,
+    required: false,
+  })
+  @Column('string', { nullable: true })
+  size?: string;
 }

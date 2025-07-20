@@ -59,5 +59,5 @@ export class CreateOrderDto {
     required: true,
   })
   @IsArray()
-  orderItems: { quantity: number; product: string }[];
+  orderItems: { quantity: number; product: string; size?: string }[];
 }

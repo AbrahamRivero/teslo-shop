@@ -56,6 +56,7 @@ export class OrderService {
           this.orderItemRepository.create({
             product: { id: item.product },
             quantity: item.quantity,
+            size: item.size,
           }),
         ),
         orderNumber,
@@ -145,6 +146,7 @@ export class OrderService {
           this.orderItemRepository.create({
             product: { id: item.product },
             quantity: item.quantity,
+            size: item.size,
           }),
         );
       }
