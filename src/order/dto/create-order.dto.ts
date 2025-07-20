@@ -4,6 +4,7 @@ import {
   IsArray,
   IsIn,
   IsInt,
+  IsNumber,
   IsOptional,
   IsPositive,
   IsString,
@@ -31,6 +32,16 @@ export class CreateOrderDto {
   @IsPositive()
   @IsOptional()
   discount?: number;
+
+  @ApiProperty({
+    example: 0,
+    description: 'Total order amount',
+    default: 0,
+    required: true,
+  })
+  @IsNumber()
+  @IsPositive()
+  totalValue: number;
 
   @ApiProperty({
     type: 'string',
