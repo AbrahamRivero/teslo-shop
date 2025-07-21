@@ -165,7 +165,7 @@ export class ProductsController {
     type: [Product],
   })
   @ApiBearerAuth()
-  @Get('favorites')
+  @Get('favorites/list')
   @Auth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   getUserFavorites(@GetUser() user: User) {
