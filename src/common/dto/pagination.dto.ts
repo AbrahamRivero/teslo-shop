@@ -86,4 +86,12 @@ export class PaginationDto {
   })
   @IsOptional()
   tags?: string | string[];
+
+  @ApiPropertyOptional({
+    description: 'Search term for products',
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  searchterm?: string;
 }

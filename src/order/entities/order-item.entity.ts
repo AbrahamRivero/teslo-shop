@@ -35,6 +35,6 @@ export class OrderItem {
     nullable: true,
     required: false,
   })
-  @Column('string', { nullable: true })
+  @Column('text', { nullable: true })
   size?: string;
 }

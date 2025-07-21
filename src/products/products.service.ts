@@ -77,6 +77,7 @@ export class ProductsService {
       gender,
       sizes,
       tags,
+      searchterm,
     } = paginationDto;
 
     const queryBuilder = this.productRepository.createQueryBuilder('product');
@@ -110,6 +111,13 @@ export class ProductsService {
 
     if (gender) {
       queryBuilder.andWhere('product.gender = :gender', { gender });
+    }
+
+    // New condition to search by title
+    if (searchterm) {
+      queryBuilder.andWhere('product.title ILIKE :searchterm', {
+        searchterm: `%${searchterm}%`,
+      });
     }
 
     // Get total count before pagination
