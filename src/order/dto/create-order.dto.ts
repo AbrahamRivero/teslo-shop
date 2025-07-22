@@ -6,7 +6,7 @@ import {
   IsInt,
   IsNumber,
   IsOptional,
-  IsPositive,
+  Min,
   IsString,
   Length,
   MinLength,
@@ -57,7 +57,7 @@ export class CreateOrderDto {
     nullable: true,
   })
   @IsInt()
-  @IsPositive()
+  @Min(0)
   @IsOptional()
   discount?: number;
 
@@ -68,7 +68,7 @@ export class CreateOrderDto {
     required: true,
   })
   @IsNumber()
-  @IsPositive()
+  @Min(0)
   subtotal: number;
 
   @ApiProperty({
@@ -78,7 +78,7 @@ export class CreateOrderDto {
     required: true,
   })
   @IsNumber()
-  @IsPositive()
+  @Min(0)
   shipping: number;
 
   @ApiProperty({
@@ -88,7 +88,7 @@ export class CreateOrderDto {
     required: true,
   })
   @IsNumber()
-  @IsPositive()
+  @Min(0)
   total: number;
 
   @ApiProperty({
