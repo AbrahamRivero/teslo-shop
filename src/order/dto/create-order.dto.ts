@@ -112,9 +112,12 @@ export class CreateOrderDto {
   paymentMethod: string;
 
   @ApiProperty({
-    example: ['pending', 'cancelled', 'completed'],
+    example: 'pending',
     description: 'Order status',
     default: 'pending',
+  })
+  @IsIn(['pending', 'cancelled', 'completed'], {
+    message: 'El estado del pedido debe ser uno de los siguientes: pending, cancelled, completed',
   })
   orderStatus: string;
 
