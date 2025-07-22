@@ -33,14 +33,21 @@ export class CreateOrderDto {
   phone: string;
 
   @ApiProperty({
-    example: 'La Habana',
+    example: 'Varadero',
     description: 'Receiver city',
   })
   @IsString()
-  @IsIn(['Matanzas', 'La Habana'], {
+  city: string;
+
+  @ApiProperty({
+    example: 'La Habana',
+    description: 'Receiver province',
+  })
+  @IsString()
+  @IsIn(['matanzas', 'habana'], {
     message: 'Solo se realizan envíos a Matanzas y La Habana',
   })
-  city: string;
+  province: string;
 
   @ApiProperty({
     example: 0,
@@ -102,7 +109,7 @@ export class CreateOrderDto {
   @IsString()
   @IsIn(['usd', 'euro', 'cup', 'card'])
   @IsOptional()
-  paymentMethod_: string;
+  paymentMethod: string;
 
   @ApiProperty({
     example: ['pending', 'cancelled', 'completed'],

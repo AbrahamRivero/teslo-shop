@@ -47,6 +47,13 @@ export class Order {
   city: string;
 
   @ApiProperty({
+    example: 'Cárdenas',
+    description: 'Receiver province',
+  })
+  @Column('text')
+  province: string;
+
+  @ApiProperty({
     example: 0,
     description: 'Discount amount',
     default: 0,
