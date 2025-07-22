@@ -365,10 +365,10 @@ export class ProductsService {
       },
     });
 
-    return favorites.map(async ({ product }) => ({
+    return favorites.map(({ product }) => ({
       ...product,
       images: product.images?.map((img) => img.url),
-      isFavorite: await this.isProductInFavorites(product.id, user),
+      isFavorite: true,
     }));
   }
 
