@@ -94,21 +94,21 @@ export class Order {
     example: 100.5,
     description: 'Subtotal order value',
   })
-  @Column('decimal')
+  @Column('float', { default: 0 })
   subtotal: number;
 
   @ApiProperty({
     example: 100.5,
     description: 'Shipping order value',
   })
-  @Column('decimal')
+  @Column('float', { default: 0 })
   shipping: number;
 
   @ApiProperty({
     example: 100.5,
     description: 'Total order value',
   })
-  @Column('decimal')
+  @Column('float', { default: 0 })
   total: number;
 
   @ApiProperty({
