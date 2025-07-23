@@ -89,9 +89,9 @@ export class OrderService {
         product: {
           id: item.product.id,
           title: item.product.title,
-          stock:item.product.stock,
+          stock: item.product.stock,
           price: item.product.price,
-          image: item.product.images ? item.product.images[0].url : null,
+          images: item.product.images,
         },
       })),
     }));
