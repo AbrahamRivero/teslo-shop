@@ -90,7 +90,7 @@ export class OrderService {
           id: item.product.id,
           title: item.product.title,
           price: item.product.price,
-          image: item.product.images ? item.product.images[0] : null,
+          image: item.product.images ? item.product.images[0].url : null,
         },
       })),
     }));
