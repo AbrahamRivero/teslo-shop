@@ -83,9 +83,15 @@ export class OrderService {
 
     return orders.map(({ orderItems, ...rest }) => ({
       ...rest,
+
       orderItems: orderItems?.map((item) => ({
         ...item,
-        product: item.product.id,
+        product: {
+          id: item.product.id,
+          title: item.product.title,
+          price: item.product.price,
+          image: item.product.images ? item.product.images[0] : null,
+        },
       })),
     }));
   }
