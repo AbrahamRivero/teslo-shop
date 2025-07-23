@@ -91,7 +91,7 @@ export class OrderService {
           title: item.product.title,
           stock: item.product.stock,
           price: item.product.price,
-          images: item.product.images,
+          images: item.product.images?.map((image) => image.url),
         },
       })),
     }));
