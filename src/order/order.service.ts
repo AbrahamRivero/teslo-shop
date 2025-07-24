@@ -75,41 +75,72 @@ export class OrderService {
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
 
-    const orders = await this.orderRepository.find({
-      take: limit,
-      skip: offset,
-      relations: { orderItems: true },
-    });
-
-    return orders.map(({ orderItems, ...rest }) => ({
-      ...rest,
-
-      orderItems: orderItems?.map((item) => ({
-        ...item,
-        product: {
-          id: item.product.id,
-          title: item.product.title,
-          stock: item.product.stock,
-          price: item.product.price,
-          images: item.product.images?.map((image) => image.url),
+    const [orders, total] = await Promise.all([
+      this.orderRepository.find({
+        take: limit,
+        skip: offset,
+        relations: {
+          orderItems: {
+            product: true,
+          },
         },
+      }),
+      this.orderRepository.count(),
+    ]);
+
+    return {
+      orders: orders.map(({ orderItems, ...rest }) => ({
+        ...rest,
+
+        orderItems: orderItems?.map((item) => ({
+          ...item,
+          product: {
+            id: item.product.id,
+            title: item.product.title,
+            stock: item.product.stock,
+            price: item.product.price,
+            images: item.product.images?.map((image) => image.url),
+          },
+        })),
       })),
-    }));
+      total,
+    };
   }
 
-  async findUserOrders(
-    paginationDto: PaginationDto,
-    userId: string,
-  ): Promise<Order[]> {
-    const { limit, offset } = paginationDto;
+  async findUserOrders(paginationDto: PaginationDto, userId: string) {
+    const { limit = 10, offset = 0 } = paginationDto;
 
-    const orders = await this.orderRepository.find({
-      where: { user: { id: userId } },
-      take: limit,
-      skip: offset,
-    });
+    const [orders, total] = await Promise.all([
+      this.orderRepository.find({
+        where: { user: { id: userId } },
+        take: limit,
+        skip: offset,
+        relations: {
+          orderItems: {
+            product: true,
+          },
+        },
+      }),
+      this.orderRepository.count(),
+    ]);
 
-    return orders;
+    return {
+      orders: orders.map(({ orderItems, ...rest }) => ({
+        ...rest,
+
+        orderItems: orderItems?.map((item) => ({
+          ...item,
+          product: {
+            id: item.product.id,
+            title: item.product.title,
+            stock: item.product.stock,
+            price: item.product.price,
+            images: item.product.images?.map((image) => image.url),
+          },
+        })),
+      })),
+      total,
+    };
   }
 
   async findOne(id: string) {
