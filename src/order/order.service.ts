@@ -340,9 +340,18 @@ export class OrderService {
       const currentPeriodStats = await getCurrentPeriodStats(current.startDate, current.endDate);
       const comparisonPeriodStats = await getCurrentPeriodStats(comparison.startDate, comparison.endDate);
 
+      const percentageChanges = {
+        totalOrders: this.calculatePercentageChange(currentPeriodStats.totalOrders, comparisonPeriodStats.totalOrders),
+        totalRevenue: this.calculatePercentageChange(currentPeriodStats.totalRevenue, comparisonPeriodStats.totalRevenue),
+        averageOrderValue: this.calculatePercentageChange(currentPeriodStats.averageOrderValue, comparisonPeriodStats.averageOrderValue),
+        totalProductsSold: this.calculatePercentageChange(currentPeriodStats.totalProductsSold, comparisonPeriodStats.totalProductsSold),
+        uniqueUsers: this.calculatePercentageChange(currentPeriodStats.uniqueUsers, comparisonPeriodStats.uniqueUsers),
+      };
+
       return {
         currentPeriod: currentPeriodStats,
         comparisonPeriod: comparisonPeriodStats,
+        percentageChanges,
       };
     } catch (error) {
       this.handleDBExceptions(error);
@@ -443,5 +452,17 @@ export class OrderService {
       result += characters[randomIndex];
     }
     return result;
+  }
+
+  private calculatePercentageChange(currentValue: number, previousValue: number): number | string {
+    if (previousValue === 0) {
+      if (currentValue === 0) {
+        return 0; // No change if both are zero
+      } else {
+        return 'Infinity'; // Infinite growth from zero
+      }
+    } else {
+      return ((currentValue - previousValue) / previousValue) * 100;
+    }
   }
 }
