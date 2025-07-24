@@ -316,6 +316,7 @@ export class OrderService {
         const orders = await query
           .leftJoinAndSelect('order.orderItems', 'orderItem')
           .leftJoinAndSelect('orderItem.product', 'product')
+          .leftJoinAndSelect('product.images', 'productImage')
           .leftJoinAndSelect('order.user', 'user')
           .where('order.orderStatus = :status', { status: 'completed' })
           .andWhere('order.createdAt BETWEEN :start AND :end', {
