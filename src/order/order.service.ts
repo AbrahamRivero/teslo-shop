@@ -144,11 +144,26 @@ export class OrderService {
   }
 
   async findOne(id: string) {
-    const order = await this.orderRepository.findOneBy({
+    const response = await this.orderRepository.findOneBy({
       id,
     });
 
-    if (!order) throw new NotFoundException(`Order with id ${id} not found.`);
+    if (!response)
+      throw new NotFoundException(`Order with id ${id} not found.`);
+
+    const order = {
+      ...response,
+      orderItems: response.orderItems?.map((item) => ({
+        ...item,
+        product: {
+          id: item.product.id,
+          title: item.product.title,
+          stock: item.product.stock,
+          price: item.product.price,
+          images: item.product.images?.map((image) => image.url),
+        },
+      })),
+    };
 
     return order;
   }
@@ -205,7 +220,7 @@ export class OrderService {
   async remove(id: string) {
     const order = await this.findOne(id);
 
-    await this.orderRepository.remove(order);
+    await this.orderRepository.remove(order as Order);
   }
   private handleDBExceptions(error: any) {
     if (error.code === '23505') throw new ConflictException(error.detail);
