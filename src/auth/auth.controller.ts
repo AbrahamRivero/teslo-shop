@@ -114,7 +114,7 @@ export class AuthController {
         secure: true,
         sameSite: 'none',
         domain: '.onrender.com',
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
       const { refreshToken: _, ...rest } = data;
       res.json(rest);
