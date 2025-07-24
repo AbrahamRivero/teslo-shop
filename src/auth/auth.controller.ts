@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import {
@@ -45,8 +46,9 @@ export class AuthController {
     if (data && data.refreshToken) {
       res.cookie('refreshToken', data.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
+        domain: '.onrender.com',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
       });
       const { refreshToken: _, ...rest } = data;
@@ -70,8 +72,9 @@ export class AuthController {
     if (data && data.refreshToken) {
       res.cookie('refreshToken', data.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
+        domain: '.onrender.com',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
       });
       const { refreshToken: _, ...rest } = data;
@@ -108,8 +111,9 @@ export class AuthController {
     if (data && data.refreshToken) {
       res.cookie('refreshToken', data.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
+        domain: '.onrender.com',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
       });
       const { refreshToken: _, ...rest } = data;
