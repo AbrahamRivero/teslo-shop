@@ -13,6 +13,7 @@ import {
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { OrderStatsDto } from './dto/order-stats.dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -65,6 +66,36 @@ export class OrderController {
   @Get('user-orders')
   findUserOrders(@Query() paginationDto: PaginationDto, @GetUser() user: User) {
     return this.orderService.findUserOrders(paginationDto, user.id);
+  }
+
+  @ApiOperation({ summary: 'Get dashboard summary statistics' })
+  @ApiOkResponse({ description: 'Dashboard summary found' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiBearerAuth()
+  @Get('dashboard/summary')
+  @Auth()
+  getDashboardSummary(@Query() orderStatsDto: OrderStatsDto) {
+    return this.orderService.getDashboardSummary(orderStatsDto);
+  }
+
+  @ApiOperation({ summary: 'Get top 10 users by completed orders' })
+  @ApiOkResponse({ description: 'Top users found' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiBearerAuth()
+  @Get('dashboard/top-users')
+  @Auth()
+  getTopUsersByOrders(@Query() orderStatsDto: OrderStatsDto) {
+    return this.orderService.getTopUsersByOrders(orderStatsDto);
+  }
+
+  @ApiOperation({ summary: 'Get top 10 products by completed orders' })
+  @ApiOkResponse({ description: 'Top products found' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiBearerAuth()
+  @Get('dashboard/top-products')
+  @Auth()
+  getTopProductsByOrders(@Query() orderStatsDto: OrderStatsDto) {
+    return this.orderService.getTopProductsByOrders(orderStatsDto);
   }
 
   @ApiOperation({ summary: 'Get a order by id' })

@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import {
@@ -13,6 +14,7 @@ import { DataSource, Repository } from 'typeorm';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { OrderStatsDto } from './dto/order-stats.dto';
 
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
@@ -222,6 +224,186 @@ export class OrderService {
 
     await this.orderRepository.remove(order as Order);
   }
+
+  private calculateDateRanges(orderStatsDto: OrderStatsDto) {
+    const { period, startDate, endDate } = orderStatsDto;
+    let currentStartDate: Date;
+    let currentEndDate: Date = new Date(); // Today
+    let comparisonStartDate: Date;
+    let comparisonEndDate: Date;
+
+    if (startDate && endDate) {
+      currentStartDate = new Date(startDate);
+      currentEndDate = new Date(endDate);
+
+      const diffTime = Math.abs(currentEndDate.getTime() - currentStartDate.getTime());
+
+      comparisonEndDate = new Date(currentStartDate);
+      comparisonEndDate.setDate(currentStartDate.getDate() - 1);
+      comparisonStartDate = new Date(comparisonEndDate.getTime() - diffTime);
+
+    } else {
+      switch (period) {
+        case 'week':
+          currentStartDate = new Date(currentEndDate);
+          currentStartDate.setDate(currentEndDate.getDate() - 7);
+          comparisonEndDate = new Date(currentStartDate);
+          comparisonEndDate.setDate(currentStartDate.getDate() - 1);
+          comparisonStartDate = new Date(comparisonEndDate);
+          comparisonStartDate.setDate(comparisonEndDate.getDate() - 7);
+          break;
+        case 'two-weeks':
+          currentStartDate = new Date(currentEndDate);
+          currentStartDate.setDate(currentEndDate.getDate() - 14);
+          comparisonEndDate = new Date(currentStartDate);
+          comparisonEndDate.setDate(currentStartDate.getDate() - 1);
+          comparisonStartDate = new Date(comparisonEndDate);
+          comparisonStartDate.setDate(comparisonEndDate.getDate() - 14);
+          break;
+        case 'month':
+          currentStartDate = new Date(currentEndDate);
+          currentStartDate.setMonth(currentEndDate.getMonth() - 1);
+          comparisonEndDate = new Date(currentStartDate);
+          comparisonEndDate.setDate(currentStartDate.getDate() - 1);
+          comparisonStartDate = new Date(comparisonEndDate);
+          comparisonStartDate.setMonth(comparisonEndDate.getMonth() - 1);
+          break;
+        case 'quarter':
+          currentStartDate = new Date(currentEndDate);
+          currentStartDate.setMonth(currentEndDate.getMonth() - 3);
+          comparisonEndDate = new Date(currentStartDate);
+          comparisonEndDate.setDate(currentStartDate.getDate() - 1);
+          comparisonStartDate = new Date(comparisonEndDate);
+          comparisonStartDate.setMonth(comparisonEndDate.getMonth() - 3);
+          break;
+        case 'year':
+          currentStartDate = new Date(currentEndDate);
+          currentStartDate.setFullYear(currentEndDate.getFullYear() - 1);
+          comparisonEndDate = new Date(currentStartDate);
+          comparisonEndDate.setDate(currentStartDate.getDate() - 1);
+          comparisonStartDate = new Date(comparisonEndDate);
+          comparisonStartDate.setFullYear(comparisonEndDate.getFullYear() - 1);
+          break;
+        default:
+          // Default to last week if no period or dates are provided
+          currentStartDate = new Date(currentEndDate);
+          currentStartDate.setDate(currentEndDate.getDate() - 7);
+          comparisonEndDate = new Date(currentStartDate);
+          comparisonEndDate.setDate(currentStartDate.getDate() - 1);
+          comparisonStartDate = new Date(comparisonEndDate);
+          comparisonStartDate.setDate(comparisonEndDate.getDate() - 7);
+          break;
+      }
+    }
+
+    return {
+      current: { startDate: currentStartDate, endDate: currentEndDate },
+      comparison: { startDate: comparisonStartDate, endDate: comparisonEndDate },
+    };
+  }
+
+  async getDashboardSummary(orderStatsDto: OrderStatsDto) {
+    try {
+      const { current, comparison } = this.calculateDateRanges(orderStatsDto);
+
+      const getCurrentPeriodStats = async (start: Date, end: Date) => {
+        const query = this.orderRepository.createQueryBuilder('order');
+
+        const orders = await query
+          .leftJoinAndSelect('order.orderItems', 'orderItem')
+          .leftJoinAndSelect('orderItem.product', 'product')
+          .where('order.orderStatus = :status', { status: 'completed' })
+          .andWhere('order.createdAt BETWEEN :start AND :end', {
+            start,
+            end,
+          })
+          .getMany();
+
+        const totalOrders = orders.length;
+        const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+        const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+        const totalProductsSold = orders.reduce(
+          (sum, order) => sum + order.orderItems.reduce((itemSum, item) => itemSum + item.quantity, 0),
+          0,
+        );
+        const uniqueUsers = new Set(orders.map(order => order.user.id)).size;
+
+        return {
+          totalOrders,
+          totalRevenue,
+          averageOrderValue,
+          totalProductsSold,
+          uniqueUsers,
+        };
+      };
+
+      const currentPeriodStats = await getCurrentPeriodStats(current.startDate, current.endDate);
+      const comparisonPeriodStats = await getCurrentPeriodStats(comparison.startDate, comparison.endDate);
+
+      return {
+        currentPeriod: currentPeriodStats,
+        comparisonPeriod: comparisonPeriodStats,
+      };
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
+  async getTopUsersByOrders(orderStatsDto: OrderStatsDto) {
+    try {
+      const { current } = this.calculateDateRanges(orderStatsDto);
+      const { startDate, endDate } = current;
+
+      const topUsers = await this.orderRepository.createQueryBuilder('order')
+        .select('order.user.id', 'userId')
+        .addSelect('user.email', 'userEmail') // Assuming user.email is accessible via the relation
+        .addSelect('COUNT(order.id)', 'orderCount')
+        .innerJoin('order.user', 'user') // Join with user entity to get user details
+        .where('order.orderStatus = :status', { status: 'completed' })
+        .andWhere('order.createdAt BETWEEN :start AND :end', {
+          start: startDate,
+          end: endDate,
+        })
+        .groupBy('order.user.id')
+        .addGroupBy('user.email') // Group by user email as well if displaying it
+        .orderBy('orderCount', 'DESC')
+        .limit(10)
+        .getRawMany();
+
+      return topUsers;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
+  async getTopProductsByOrders(orderStatsDto: OrderStatsDto) {
+    try {
+      const { current } = this.calculateDateRanges(orderStatsDto);
+      const { startDate, endDate } = current;
+
+      const topProducts = await this.orderItemRepository.createQueryBuilder('orderItem')
+        .select('product.id', 'productId')
+        .addSelect('product.title', 'productTitle')
+        .addSelect('SUM(orderItem.quantity)', 'totalQuantitySold')
+        .leftJoin('orderItem.order', 'order')
+        .leftJoin('orderItem.product', 'product')
+        .where('order.orderStatus = :status', { status: 'completed' })
+        .andWhere('order.createdAt BETWEEN :start AND :end', {
+          start: startDate,
+          end: endDate,
+        })
+        .groupBy('product.id')
+        .addGroupBy('product.title')
+        .orderBy('totalQuantitySold', 'DESC')
+        .limit(10)
+        .getRawMany();
+
+      return topProducts;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
   private handleDBExceptions(error: any) {
     if (error.code === '23505') throw new ConflictException(error.detail);
 
