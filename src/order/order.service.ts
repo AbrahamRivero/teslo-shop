@@ -375,7 +375,7 @@ export class OrderService {
         })
         .groupBy('order.user.id')
         .addGroupBy('user.email') // Group by user email as well if displaying it
-        .orderBy('orderCount', 'DESC')
+        .orderBy('"orderCount"', 'DESC')
         .limit(10)
         .getRawMany();
 
@@ -403,7 +403,7 @@ export class OrderService {
         })
         .groupBy('product.id')
         .addGroupBy('product.title')
-        .orderBy('totalQuantitySold', 'DESC')
+        .orderBy('"totalQuantitySold"', 'DESC')
         .limit(10)
         .getRawMany();
 
