@@ -460,7 +460,7 @@ export class OrderService {
       if (currentValue === 0) {
         return 0; // No change if both are zero
       } else {
-        return 'Infinity'; // Infinite growth from zero
+        return 100; // Return 100% for growth from zero
       }
     } else {
       return ((currentValue - previousValue) / previousValue) * 100;
