@@ -236,12 +236,13 @@ export class OrderService {
       currentStartDate = new Date(startDate);
       currentEndDate = new Date(endDate);
 
-      const diffTime = Math.abs(currentEndDate.getTime() - currentStartDate.getTime());
+      const diffTime = Math.abs(
+        currentEndDate.getTime() - currentStartDate.getTime(),
+      );
 
       comparisonEndDate = new Date(currentStartDate);
       comparisonEndDate.setDate(currentStartDate.getDate() - 1);
       comparisonStartDate = new Date(comparisonEndDate.getTime() - diffTime);
-
     } else {
       switch (period) {
         case 'week':
@@ -298,7 +299,10 @@ export class OrderService {
 
     return {
       current: { startDate: currentStartDate, endDate: currentEndDate },
-      comparison: { startDate: comparisonStartDate, endDate: comparisonEndDate },
+      comparison: {
+        startDate: comparisonStartDate,
+        endDate: comparisonEndDate,
+      },
     };
   }
 
@@ -321,13 +325,22 @@ export class OrderService {
           .getMany();
 
         const totalOrders = orders.length;
-        const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-        const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-        const totalProductsSold = orders.reduce(
-          (sum, order) => sum + order.orderItems.reduce((itemSum, item) => itemSum + item.quantity, 0),
+        const totalRevenue = orders.reduce(
+          (sum, order) => sum + order.total,
           0,
         );
-        const uniqueUsers = new Set(orders.map(order => order.user.id)).size;
+        const averageOrderValue =
+          totalOrders > 0 ? totalRevenue / totalOrders : 0;
+        const totalProductsSold = orders.reduce(
+          (sum, order) =>
+            sum +
+            order.orderItems.reduce(
+              (itemSum, item) => itemSum + item.quantity,
+              0,
+            ),
+          0,
+        );
+        const uniqueUsers = new Set(orders.map((order) => order.user.id)).size;
 
         return {
           totalOrders,
@@ -335,24 +348,66 @@ export class OrderService {
           averageOrderValue,
           totalProductsSold,
           uniqueUsers,
+          orders,
         };
       };
 
-      const currentPeriodStats = await getCurrentPeriodStats(current.startDate, current.endDate);
-      const comparisonPeriodStats = await getCurrentPeriodStats(comparison.startDate, comparison.endDate);
+      const currentPeriodStatsResult = await getCurrentPeriodStats(
+        current.startDate,
+        current.endDate,
+      );
+      const comparisonPeriodStats = await getCurrentPeriodStats(
+        comparison.startDate,
+        comparison.endDate,
+      );
+
+      const { orders: rawCurrentOrders, ...currentPeriodStats } =
+        currentPeriodStatsResult;
+
+      const detailedCurrentOrders = rawCurrentOrders.map(
+        ({ orderItems, ...rest }) => ({
+          ...rest,
+          orderItems: orderItems?.map((item) => ({
+            ...item,
+            product: {
+              id: item.product.id,
+              title: item.product.title,
+              stock: item.product.stock,
+              price: item.product.price,
+              images: item.product.images?.map((image) => image.url),
+            },
+          })),
+        }),
+      );
 
       const percentageChanges = {
-        totalOrders: this.calculatePercentageChange(currentPeriodStats.totalOrders, comparisonPeriodStats.totalOrders),
-        totalRevenue: this.calculatePercentageChange(currentPeriodStats.totalRevenue, comparisonPeriodStats.totalRevenue),
-        averageOrderValue: this.calculatePercentageChange(currentPeriodStats.averageOrderValue, comparisonPeriodStats.averageOrderValue),
-        totalProductsSold: this.calculatePercentageChange(currentPeriodStats.totalProductsSold, comparisonPeriodStats.totalProductsSold),
-        uniqueUsers: this.calculatePercentageChange(currentPeriodStats.uniqueUsers, comparisonPeriodStats.uniqueUsers),
+        totalOrders: this.calculatePercentageChange(
+          currentPeriodStats.totalOrders,
+          comparisonPeriodStats.totalOrders,
+        ),
+        totalRevenue: this.calculatePercentageChange(
+          currentPeriodStats.totalRevenue,
+          comparisonPeriodStats.totalRevenue,
+        ),
+        averageOrderValue: this.calculatePercentageChange(
+          currentPeriodStats.averageOrderValue,
+          comparisonPeriodStats.averageOrderValue,
+        ),
+        totalProductsSold: this.calculatePercentageChange(
+          currentPeriodStats.totalProductsSold,
+          comparisonPeriodStats.totalProductsSold,
+        ),
+        uniqueUsers: this.calculatePercentageChange(
+          currentPeriodStats.uniqueUsers,
+          comparisonPeriodStats.uniqueUsers,
+        ),
       };
 
       return {
         currentPeriod: currentPeriodStats,
         comparisonPeriod: comparisonPeriodStats,
         percentageChanges,
+        currentPeriodOrders: detailedCurrentOrders,
       };
     } catch (error) {
       this.handleDBExceptions(error);
@@ -364,7 +419,8 @@ export class OrderService {
       const { current } = this.calculateDateRanges(orderStatsDto);
       const { startDate, endDate } = current;
 
-      const topUsers = await this.orderRepository.createQueryBuilder('order')
+      const topUsers = await this.orderRepository
+        .createQueryBuilder('order')
         .select('order.user.id', 'userId')
         .addSelect('user.email', 'userEmail') // Assuming user.email is accessible via the relation
         .addSelect('COUNT(order.id)', 'orderCount')
@@ -391,7 +447,8 @@ export class OrderService {
       const { current } = this.calculateDateRanges(orderStatsDto);
       const { startDate, endDate } = current;
 
-      const topProducts = await this.orderItemRepository.createQueryBuilder('orderItem')
+      const topProducts = await this.orderItemRepository
+        .createQueryBuilder('orderItem')
         .select('product.id', 'productId')
         .addSelect('product.title', 'productTitle')
         .addSelect('SUM(orderItem.quantity)', 'totalQuantitySold')
@@ -455,7 +512,10 @@ export class OrderService {
     return result;
   }
 
-  private calculatePercentageChange(currentValue: number, previousValue: number): number | string {
+  private calculatePercentageChange(
+    currentValue: number,
+    previousValue: number,
+  ): number | string {
     if (previousValue === 0) {
       if (currentValue === 0) {
         return 0; // No change if both are zero
