@@ -46,9 +46,9 @@ export class AuthController {
     if (data && data.refreshToken) {
       res.cookie('refreshToken', data.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+        secure: true, //asegura de usar https
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
       const { refreshToken: _, ...rest } = data;
       res.json(rest);
@@ -71,9 +71,9 @@ export class AuthController {
     if (data && data.refreshToken) {
       res.cookie('refreshToken', data.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
       const { refreshToken: _, ...rest } = data;
       res.json(rest);
@@ -109,8 +109,8 @@ export class AuthController {
     if (data && data.refreshToken) {
       res.cookie('refreshToken', data.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'strict',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
       const { refreshToken: _, ...rest } = data;
