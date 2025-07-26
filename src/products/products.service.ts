@@ -327,8 +327,6 @@ export class ProductsService {
     });
 
     await this.productFavoritesRepository.save(favorite);
-
-    return favorite;
   }
 
   async removeFromFavorites(productId: string, user: User) {
@@ -344,10 +342,6 @@ export class ProductsService {
     }
 
     await this.productFavoritesRepository.remove(favorite);
-
-    return {
-      message: 'Producto eliminado de favoritos con éxito',
-    };
   }
 
   async getUserFavorites(user: User) {
