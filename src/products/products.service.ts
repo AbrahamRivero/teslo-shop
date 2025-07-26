@@ -328,10 +328,7 @@ export class ProductsService {
 
     await this.productFavoritesRepository.save(favorite);
 
-    return {
-      message: 'Producto agregado a favoritos con éxito',
-      favorite,
-    };
+    return favorite;
   }
 
   async removeFromFavorites(productId: string, user: User) {
