@@ -43,14 +43,14 @@ export class AuthController {
   @Post('sign-up')
   async signUp(@Body() signUpUserDto: SignUpUserDto, @Response() res: Res) {
     const data = await this.authService.signUp(signUpUserDto);
-    if (data && data.refreshToken) {
-      res.cookie('refreshToken', data.refreshToken, {
+    if (data && data.refreshtoken) {
+      res.cookie('refreshtoken', data.refreshtoken, {
         httpOnly: true,
         secure: true, //asegura de usar https
         sameSite: 'strict',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
-      const { refreshToken: _, ...rest } = data;
+      const { refreshtoken: _, ...rest } = data;
       res.json(rest);
       return;
     }
@@ -68,14 +68,14 @@ export class AuthController {
   @Post('sign-in')
   async signIp(@Body() signInUserDto: SignInUserDto, @Response() res: Res) {
     const data = await this.authService.signIn(signInUserDto);
-    if (data && data.refreshToken) {
-      res.cookie('refreshToken', data.refreshToken, {
+    if (data && data.refreshtoken) {
+      res.cookie('refreshtoken', data.refreshtoken, {
         httpOnly: true,
         secure: true,
         sameSite: 'strict',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
-      const { refreshToken: _, ...rest } = data;
+      const { refreshtoken: _, ...rest } = data;
       res.json(rest);
       return;
     }
@@ -99,21 +99,21 @@ export class AuthController {
   @Post('refresh-token')
   async refreshToken(
     @Response() res: Res,
-    @Request() req: { cookies: { refreshToken?: string } },
+    @Request() req: { cookies: { refreshtoken?: string } },
   ) {
-    const refreshToken = req.cookies?.refreshToken;
-    if (!refreshToken) {
+    const refreshtoken = req.cookies?.refreshtoken;
+    if (!refreshtoken) {
       throw new UnauthorizedException({ message: 'No refresh token provided' });
     }
-    const data = await this.authService.refreshToken({ refreshToken });
-    if (data && data.refreshToken) {
-      res.cookie('refreshToken', data.refreshToken, {
+    const data = await this.authService.refreshToken({ refreshtoken });
+    if (data && data.refreshtoken) {
+      res.cookie('refreshtoken', data.refreshtoken, {
         httpOnly: true,
         secure: true,
         sameSite: 'strict',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
-      const { refreshToken: _, ...rest } = data;
+      const { refreshtoken: _, ...rest } = data;
       res.json(rest);
       return;
     }
@@ -128,7 +128,7 @@ export class AuthController {
   async logout(@GetUser() user: User, @Response() res: Res) {
     try {
       await this.authService.logout(user.id);
-      res.clearCookie('refreshToken');
+      res.clearCookie('refreshtoken');
       res.json({ message: 'Logout exitoso' });
     } catch (error) {
       throw new InternalServerErrorException({

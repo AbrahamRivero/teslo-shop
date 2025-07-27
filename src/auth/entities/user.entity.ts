@@ -99,7 +99,7 @@ export class User {
     required: false,
   })
   @Column('text', { nullable: true })
-  refreshToken?: string;
+  refreshtoken?: string;
 
   @BeforeInsert()
   checkFieldsBeforeInsert() {

@@ -35,16 +35,16 @@ export class AuthService {
       });
 
       // Generar refresh token JWT
-      const refreshToken = this.getJwtRefreshToken({ id: user.id });
-      user.refreshToken = refreshToken;
+      const refreshtoken = this.getJwtRefreshToken({ id: user.id });
+      user.refreshtoken = refreshtoken;
 
       await this.userRepository.save(user);
-      const { password: _, refreshToken: __, ...userWithoutPassword } = user;
+      const { password: _, refreshtoken: __, ...userWithoutPassword } = user;
 
       return {
         ...userWithoutPassword,
         token: this.getJwtToken({ id: user.id }),
-        refreshToken,
+        refreshtoken,
       };
     } catch (error) {
       this.handleDBErrors(error);
@@ -66,7 +66,7 @@ export class AuthService {
         products: true,
         reviews: true,
         orders: true,
-        refreshToken: true,
+        refreshtoken: true,
       },
     });
 
@@ -77,16 +77,16 @@ export class AuthService {
       throw new UnauthorizedException('Inicio de sesión no autorizado.');
 
     // Generar nuevo refresh token JWT
-    const refreshToken = this.getJwtRefreshToken({ id: user.id });
-    user.refreshToken = refreshToken;
+    const refreshtoken = this.getJwtRefreshToken({ id: user.id });
+    user.refreshtoken = refreshtoken;
     await this.userRepository.save(user);
 
-    const { password: _, refreshToken: __, ...userData } = user;
+    const { password: _, refreshtoken: __, ...userData } = user;
 
     return {
       ...userData,
       token: this.getJwtToken({ id: user.id }),
-      refreshToken,
+      refreshtoken,
     };
   }
 
@@ -103,37 +103,49 @@ export class AuthService {
   }
 
   async refreshToken(refreshTokenDto: RefreshTokenDto) {
-    const { refreshToken } = refreshTokenDto;
-    if (!refreshToken || typeof refreshToken !== 'string') {
-      throw new BadRequestException('El refresh token es requerido y debe ser un string.');
+    const { refreshtoken } = refreshTokenDto;
+    if (!refreshtoken || typeof refreshtoken !== 'string') {
+      throw new BadRequestException(
+        'El refresh token es requerido y debe ser un string.',
+      );
     }
     let payload: JwtPayload;
     try {
-      payload = this.jwtService.verify(refreshToken, { secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret' });
+      payload = this.jwtService.verify(refreshtoken, {
+        secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
+      });
     } catch (e) {
       throw new UnauthorizedException('Refresh token inválido.');
     }
     let user: User | null = null;
     try {
-      user = await this.userRepository.findOne({ where: { id: payload.id, refreshToken } });
+      user = await this.userRepository.findOne({
+        where: { id: payload.id, refreshtoken },
+      });
     } catch (e) {
-      throw new InternalServerErrorException('Error al buscar el usuario en la base de datos.');
+      throw new InternalServerErrorException(
+        'Error al buscar el usuario en la base de datos.',
+      );
     }
     if (!user || !user.isActive) {
-      throw new UnauthorizedException('Refresh token inválido o usuario inactivo.');
+      throw new UnauthorizedException(
+        'Refresh token inválido o usuario inactivo.',
+      );
     }
     // Generar nuevo refresh token y access token
     let newRefreshToken: string;
     try {
       newRefreshToken = this.getJwtRefreshToken({ id: user.id });
-      user.refreshToken = newRefreshToken;
+      user.refreshtoken = newRefreshToken;
       await this.userRepository.save(user);
     } catch (e) {
-      throw new InternalServerErrorException('Error al guardar el nuevo refresh token.');
+      throw new InternalServerErrorException(
+        'Error al guardar el nuevo refresh token.',
+      );
     }
     return {
       token: this.getJwtToken({ id: user.id }),
-      refreshToken: newRefreshToken,
+      refreshtoken: newRefreshToken,
     };
   }
 
@@ -154,7 +166,7 @@ export class AuthService {
   async logout(userId: string) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (user) {
-      user.refreshToken = undefined;
+      user.refreshtoken = undefined;
       await this.userRepository.save(user);
     }
     return { message: 'Logout exitoso' };
