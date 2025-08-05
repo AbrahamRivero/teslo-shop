@@ -225,78 +225,102 @@ export class OrderService {
     await this.orderRepository.remove(order as Order);
   }
 
+  private setDayStart(date: Date): Date {
+    const newDate = new Date(date);
+    newDate.setHours(0, 0, 0, 0);
+    return newDate;
+  }
+
+  private setDayEnd(date: Date): Date {
+    const newDate = new Date(date);
+    newDate.setHours(23, 59, 59, 999);
+    return newDate;
+  }
+
   private calculateDateRanges(orderStatsDto: OrderStatsDto) {
     const { period, startDate, endDate } = orderStatsDto;
     let currentStartDate: Date;
-    let currentEndDate: Date = new Date(); // Today
+    let currentEndDate: Date;
     let comparisonStartDate: Date;
     let comparisonEndDate: Date;
 
     if (startDate && endDate) {
-      currentStartDate = new Date(startDate);
-      currentEndDate = new Date(endDate);
+      currentStartDate = this.setDayStart(new Date(startDate));
+      currentEndDate = this.setDayEnd(new Date(endDate));
 
-      const diffTime = Math.abs(
-        currentEndDate.getTime() - currentStartDate.getTime(),
-      );
+      const diffTime =
+        Math.abs(currentEndDate.getTime() - currentStartDate.getTime()) + 1; // +1 para incluir el día final
 
-      comparisonEndDate = new Date(currentStartDate);
+      comparisonEndDate = this.setDayEnd(new Date(currentStartDate));
       comparisonEndDate.setDate(currentStartDate.getDate() - 1);
       comparisonStartDate = new Date(comparisonEndDate.getTime() - diffTime);
+      comparisonStartDate = this.setDayStart(comparisonStartDate);
     } else {
+      currentEndDate = this.setDayEnd(new Date()); // Hoy a las 23:59:59
+
       switch (period) {
         case 'week':
-          currentStartDate = new Date(currentEndDate);
-          currentStartDate.setDate(currentEndDate.getDate() - 7);
-          comparisonEndDate = new Date(currentStartDate);
+          currentStartDate = this.setDayStart(new Date(currentEndDate));
+          currentStartDate.setDate(currentEndDate.getDate() - 6); // 6 días atrás + hoy = 7 días
+
+          comparisonEndDate = this.setDayEnd(new Date(currentStartDate));
           comparisonEndDate.setDate(currentStartDate.getDate() - 1);
-          comparisonStartDate = new Date(comparisonEndDate);
-          comparisonStartDate.setDate(comparisonEndDate.getDate() - 7);
+          comparisonStartDate = this.setDayStart(new Date(comparisonEndDate));
+          comparisonStartDate.setDate(comparisonEndDate.getDate() - 6);
           break;
+
         case 'two-weeks':
-          currentStartDate = new Date(currentEndDate);
-          currentStartDate.setDate(currentEndDate.getDate() - 14);
-          comparisonEndDate = new Date(currentStartDate);
+          currentStartDate = this.setDayStart(new Date(currentEndDate));
+          currentStartDate.setDate(currentEndDate.getDate() - 13); // 13 días atrás + hoy = 14 días
+
+          comparisonEndDate = this.setDayEnd(new Date(currentStartDate));
           comparisonEndDate.setDate(currentStartDate.getDate() - 1);
-          comparisonStartDate = new Date(comparisonEndDate);
-          comparisonStartDate.setDate(comparisonEndDate.getDate() - 14);
+          comparisonStartDate = this.setDayStart(new Date(comparisonEndDate));
+          comparisonStartDate.setDate(comparisonEndDate.getDate() - 13);
           break;
+
         case 'month':
-          currentStartDate = new Date(currentEndDate);
+          currentStartDate = this.setDayStart(new Date(currentEndDate));
           currentStartDate.setMonth(currentEndDate.getMonth() - 1);
-          comparisonEndDate = new Date(currentStartDate);
+
+          comparisonEndDate = this.setDayEnd(new Date(currentStartDate));
           comparisonEndDate.setDate(currentStartDate.getDate() - 1);
-          comparisonStartDate = new Date(comparisonEndDate);
+          comparisonStartDate = this.setDayStart(new Date(comparisonEndDate));
           comparisonStartDate.setMonth(comparisonEndDate.getMonth() - 1);
           break;
+
         case 'quarter':
-          currentStartDate = new Date(currentEndDate);
+          currentStartDate = this.setDayStart(new Date(currentEndDate));
           currentStartDate.setMonth(currentEndDate.getMonth() - 3);
-          comparisonEndDate = new Date(currentStartDate);
+
+          comparisonEndDate = this.setDayEnd(new Date(currentStartDate));
           comparisonEndDate.setDate(currentStartDate.getDate() - 1);
-          comparisonStartDate = new Date(comparisonEndDate);
+          comparisonStartDate = this.setDayStart(new Date(comparisonEndDate));
           comparisonStartDate.setMonth(comparisonEndDate.getMonth() - 3);
           break;
+
         case 'year':
-          currentStartDate = new Date(currentEndDate);
+          currentStartDate = this.setDayStart(new Date(currentEndDate));
           currentStartDate.setFullYear(currentEndDate.getFullYear() - 1);
-          comparisonEndDate = new Date(currentStartDate);
+
+          comparisonEndDate = this.setDayEnd(new Date(currentStartDate));
           comparisonEndDate.setDate(currentStartDate.getDate() - 1);
-          comparisonStartDate = new Date(comparisonEndDate);
+          comparisonStartDate = this.setDayStart(new Date(comparisonEndDate));
           comparisonStartDate.setFullYear(comparisonEndDate.getFullYear() - 1);
           break;
+
         default:
-          // Default to last week if no period or dates are provided
-          currentStartDate = new Date(currentEndDate);
-          currentStartDate.setDate(currentEndDate.getDate() - 7);
-          comparisonEndDate = new Date(currentStartDate);
+          // Por defecto, se usa la lógica de la semana.
+          currentStartDate = this.setDayStart(new Date(currentEndDate));
+          currentStartDate.setDate(currentEndDate.getDate() - 6);
+
+          comparisonEndDate = this.setDayEnd(new Date(currentStartDate));
           comparisonEndDate.setDate(currentStartDate.getDate() - 1);
-          comparisonStartDate = new Date(comparisonEndDate);
-          comparisonStartDate.setDate(comparisonEndDate.getDate() - 7);
+          comparisonStartDate = this.setDayStart(new Date(comparisonEndDate));
+          comparisonStartDate.setDate(comparisonEndDate.getDate() - 6);
           break;
       }
     }
-
     return {
       current: { startDate: currentStartDate, endDate: currentEndDate },
       comparison: {
