@@ -40,7 +40,7 @@ export class CreateProductDto {
   })
   @IsString()
   @IsOptional()
-  descripcion?: string;
+  description?: string;
 
   @ApiProperty({
     description: 'Product slug',
