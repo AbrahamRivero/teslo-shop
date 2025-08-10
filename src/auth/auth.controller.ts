@@ -10,6 +10,7 @@ import {
   Request,
   InternalServerErrorException,
   Param,
+  Query,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -30,6 +31,7 @@ import { Auth } from './decorators';
 import { Response as Res } from 'express';
 import { UnauthorizedException } from '@nestjs/common';
 import { ValidRoles } from './interfaces';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -150,8 +152,8 @@ export class AuthController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiForbiddenResponse({ description: 'Forbidden (Requires admin role)' })
-  findAllUsers() {
-    return this.authService.findAllUsers();
+  findAllUsers(@Query() paginationDto: PaginationDto) {
+    return this.authService.findAllUsers(paginationDto);
   }
 
   @Get('users/:id')

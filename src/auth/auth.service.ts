@@ -19,6 +19,7 @@ import { User } from './entities/user.entity';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { Order } from 'src/order/entities';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class AuthService {
@@ -176,8 +177,28 @@ export class AuthService {
     return { message: 'Logout exitoso' };
   }
 
-  async findAllUsers() {
-    const users = await this.userRepository.find({
+  async findAllUsers(paginationDto: PaginationDto): Promise<{
+    usersWithStats: {
+      email: string;
+      fullName: string;
+      isActive: boolean;
+      roles: string[];
+      reviewStats: {
+        totalReviews: number;
+        averageRating: number;
+      };
+      orderStats: {
+        totalCompletedOrders: number;
+        averageSpent: number;
+      };
+    }[];
+    total: number;
+  }> {
+    const { limit = 15, offset = 0 } = paginationDto;
+
+    const [users, total] = await this.userRepository.findAndCount({
+      skip: offset,
+      take: limit,
       select: ['id', 'email', 'fullName', 'isActive', 'roles'],
       relations: ['reviews', 'orders'],
     });
@@ -216,7 +237,10 @@ export class AuthService {
       };
     });
 
-    return usersWithStats;
+    return {
+      usersWithStats,
+      total,
+    };
   }
 
   async findUserById(id: string) {
