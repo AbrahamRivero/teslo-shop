@@ -9,6 +9,7 @@ import {
   Response,
   Request,
   InternalServerErrorException,
+  Param,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -19,6 +20,7 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
   ApiBearerAuth,
+  ApiForbiddenResponse,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
@@ -27,6 +29,7 @@ import { User, UserWithOutPassword } from './entities/user.entity';
 import { Auth } from './decorators';
 import { Response as Res } from 'express';
 import { UnauthorizedException } from '@nestjs/common';
+import { ValidRoles } from './interfaces';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -135,5 +138,33 @@ export class AuthController {
         message: 'Error durante el logout',
       });
     }
+  }
+
+  @Get('users')
+  @Auth(ValidRoles.admin)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all users (admin only)' })
+  @ApiOkResponse({
+    description: 'Returns all users without their passwords',
+    type: [UserWithOutPassword],
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden (Requires admin role)' })
+  findAllUsers() {
+    return this.authService.findAllUsers();
+  }
+
+  @Get('users/:id')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a user by ID' })
+  @ApiOkResponse({
+    description: 'Returns a user without their password',
+    type: UserWithOutPassword,
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBadRequestResponse({ description: 'User not found' })
+  findUserById(@Param('id') id: string) {
+    return this.authService.findUserById(id);
   }
 }

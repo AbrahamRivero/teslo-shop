@@ -7,6 +7,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -17,12 +18,15 @@ import { SignInUserDto } from './dto/sign-in-user.dto';
 import { User } from './entities/user.entity';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { Order } from 'src/order/entities';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -170,5 +174,107 @@ export class AuthService {
       await this.userRepository.save(user);
     }
     return { message: 'Logout exitoso' };
+  }
+
+  async findAllUsers() {
+    const users = await this.userRepository.find({
+      select: ['id', 'email', 'fullName', 'isActive', 'roles'],
+      relations: ['reviews', 'orders'],
+    });
+
+    const usersWithStats = users.map((user) => {
+      const totalReviews = user.reviews?.length || 0;
+      const averageRating =
+        totalReviews > 0
+          ? user.reviews.reduce((sum, review) => sum + review.rating, 0) /
+            totalReviews
+          : 0;
+
+      const completedOrders =
+        user.orders?.filter((order) => order.orderStatus === 'completed') || [];
+      const totalOrders = completedOrders.length;
+      const totalSpent = completedOrders.reduce(
+        (sum, order) => sum + order.total,
+        0,
+      );
+      const averageSpent = totalOrders > 0 ? totalSpent / totalOrders : 0;
+
+      return {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        isActive: user.isActive,
+        roles: user.roles,
+        reviewStats: {
+          totalReviews: totalReviews,
+          averageRating: parseFloat(averageRating.toFixed(2)),
+        },
+        orderStats: {
+          totalCompletedOrders: totalOrders,
+          averageSpent: parseFloat(averageSpent.toFixed(2)),
+        },
+      };
+    });
+
+    return usersWithStats;
+  }
+
+  async findUserById(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      select: ['email', 'fullName', 'isActive', 'roles'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID "${id}" not found.`);
+    }
+
+    const last5OrdersWithRelations = await this.orderRepository.find({
+      where: { user: { id } },
+      order: { createdAt: 'DESC' },
+      take: 5,
+      relations: ['orderItems'],
+      select: {
+        id: true,
+        orderStatus: true,
+        orderNumber: true,
+        trackingNumber: true,
+        total: true,
+        shipping: true,
+        createdAt: true,
+        orderItems: {
+          id: true,
+          quantity: true,
+          size: true,
+          product: { title: true, slug: true },
+        },
+      },
+    });
+
+    const last5Orders = last5OrdersWithRelations.map((order) => {
+      return {
+        id: order.id,
+        orderStatus: order.orderStatus,
+        orderNumber: order.orderNumber,
+        trackingNumber: order.trackingNumber,
+        shipping: order.shipping,
+        total: order.total,
+        createdAt: order.createdAt,
+        orderItems: order.orderItems.map((orderItem) => ({
+          id: orderItem.id,
+          quantity: orderItem.quantity,
+          size: orderItem.size,
+          product: {
+            title: orderItem.product.title,
+            slug: orderItem.product.slug,
+          },
+        })),
+      };
+    });
+
+    return {
+      ...user,
+      last5Orders,
+    };
   }
 }
