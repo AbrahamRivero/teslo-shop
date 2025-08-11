@@ -11,6 +11,7 @@ import {
   InternalServerErrorException,
   Param,
   Query,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -22,6 +23,7 @@ import {
   ApiUnauthorizedResponse,
   ApiBearerAuth,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
@@ -168,5 +170,19 @@ export class AuthController {
   @ApiBadRequestResponse({ description: 'User not found' })
   findUserById(@Param('id') id: string) {
     return this.authService.findUserById(id);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Soft delete a user (admin only)' })
+  @ApiOkResponse({
+    description: 'User successfully soft deleted',
+    type: UserWithOutPassword,
+  })
+  @ApiForbiddenResponse({ description: 'Forbidden (Requires admin role)' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @Delete('users/:id')
+  @Auth(ValidRoles.admin)
+  softDeleteUser(@Param('id') id: string) {
+    return this.authService.softDeleteUser(id);
   }
 }

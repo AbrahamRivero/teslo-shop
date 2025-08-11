@@ -301,4 +301,17 @@ export class AuthService {
       last5Orders,
     };
   }
+
+  async softDeleteUser(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID "${id}" not found.`);
+    }
+
+    user.isActive = false;
+    await this.userRepository.save(user);
+
+    return user;
+  }
 }
