@@ -68,7 +68,58 @@ export class OrderService {
 
       await this.orderRepository.save(order);
 
-      return { ...order, orderItems };
+      const savedOrder = await this.orderRepository.findOne({
+        where: { id: order.id },
+        select: {
+          id: true,
+          shippingAddress: true,
+          phone: true,
+          city: true,
+          province: true,
+          discount: true,
+          paymentMethod: true,
+          orderStatus: true,
+          orderNumber: true,
+          trackingNumber: true,
+          subtotal: true,
+          shipping: true,
+          total: true,
+          notes: true,
+          orderItems: {
+            quantity: true,
+            size: true,
+            id: true,
+            product: { id: true, title: true, slug: true },
+          },
+        },
+      });
+
+      return {
+        id: savedOrder?.id,
+        shippingAddress: savedOrder?.shippingAddress,
+        phone: savedOrder?.phone,
+        city: savedOrder?.city,
+        province: savedOrder?.province,
+        discount: savedOrder?.discount,
+        paymentMethod: savedOrder?.paymentMethod,
+        orderStatus: savedOrder?.orderStatus,
+        orderNumber: savedOrder?.orderNumber,
+        trackingNumber: savedOrder?.trackingNumber,
+        subtotal: savedOrder?.subtotal,
+        shipping: savedOrder?.shipping,
+        total: savedOrder?.total,
+        notes: savedOrder?.notes,
+        orderItems: savedOrder?.orderItems.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+          size: item.size,
+          product: {
+            id: item.product.id,
+            title: item.product.title,
+            slug: item.product.slug,
+          },
+        })),
+      };
     } catch (error) {
       this.handleDBExceptions(error);
     }
