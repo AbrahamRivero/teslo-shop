@@ -25,7 +25,7 @@ import { Order } from 'src/order/entities';
       useFactory: (configService: ConfigService) => {
         return {
           secret: configService.get('JWT_SECRET'),
-          signOptions: { expiresIn: '8h' },
+          signOptions: { expiresIn: '30m' },
         };
       },
     }),
