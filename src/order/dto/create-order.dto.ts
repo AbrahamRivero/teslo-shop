@@ -116,8 +116,9 @@ export class CreateOrderDto {
     description: 'Order status',
     default: 'pending',
   })
-  @IsIn(['pending', 'cancelled', 'completed'], {
-    message: 'El estado del pedido debe ser uno de los siguientes: pending, cancelled, completed',
+  @IsIn(['pending', 'cancelled', 'completed', 'confirmed', 'shipped'], {
+    message:
+      'El estado del pedido debe ser uno de los siguientes: pending, cancelled, completed,confirmed,shipped',
   })
   orderStatus: string;
 
