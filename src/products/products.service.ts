@@ -208,6 +208,7 @@ export class ProductsService {
         .leftJoinAndSelect('prod.reviews', 'prodReviews')
         .leftJoinAndSelect('prodReviews.user', 'user')
         .leftJoinAndSelect('prod.relatedProducts', 'relatedProducts')
+        .leftJoinAndSelect('relatedProducts.images', 'relatedProductImages')
         .getOne();
     }
 
@@ -226,6 +227,17 @@ export class ProductsService {
       ...rest
     } = await this.findOne(term);
 
+    const formattedRelatedProducts = relatedProducts
+      ? relatedProducts.map((relatedProduct) => ({
+          ...relatedProduct,
+          images: relatedProduct.images
+            ? relatedProduct.images.map((img) => img.url)
+            : [],
+        }))
+      : [];
+
+    const formattedImages = images ? images.map((img) => img.url) : [];
+
     // Verificar si el producto está en favoritos
     let isFavorite = false;
     if (user && user.id) {
@@ -234,8 +246,8 @@ export class ProductsService {
 
     return {
       ...rest,
-      images: images.map((img) => img.url),
-      relatedProducts,
+      images: formattedImages,
+      relatedProducts: formattedRelatedProducts,
       isFavorite,
     };
   }
