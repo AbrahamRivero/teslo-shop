@@ -10,6 +10,7 @@ import {
   IsString,
   MinLength,
   IsUUID,
+  Min,
 } from 'class-validator';
 
 export class CreateProductDto {
@@ -57,7 +58,7 @@ export class CreateProductDto {
     default: 0,
   })
   @IsInt()
-  @IsPositive()
+  @Min(0)
   @IsOptional()
   stock?: number;
 
