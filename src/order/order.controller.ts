@@ -101,9 +101,11 @@ export class OrderController {
   @ApiOperation({ summary: 'Get a order by id' })
   @ApiOkResponse({ description: 'Order found', type: Order })
   @ApiNotFoundResponse({ description: 'Order not found' })
+  @ApiBearerAuth()
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(id);
+  @Auth()
+  findOne(@Param('id', ParseUUIDPipe) id: string, @GetUser() user: User) {
+    return this.orderService.findOne(id, user);
   }
 
   @ApiOperation({ summary: 'Update a order' })

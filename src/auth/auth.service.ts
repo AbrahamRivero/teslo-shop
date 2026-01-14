@@ -103,6 +103,10 @@ export class AuthService {
   }
 
   private getJwtToken(payload: JwtPayload) {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new InternalServerErrorException('JWT_SECRET not configured');
+    }
     const token = this.jwtService.sign(payload);
     return token;
   }
@@ -114,10 +118,14 @@ export class AuthService {
         'El refresh token es requerido y debe ser un string.',
       );
     }
+    const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+    if (!jwtRefreshSecret) {
+      throw new InternalServerErrorException('JWT_REFRESH_SECRET not configured');
+    }
     let payload: JwtPayload;
     try {
       payload = this.jwtService.verify(refreshtoken, {
-        secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
+        secret: jwtRefreshSecret,
       });
     } catch (e) {
       throw new UnauthorizedException('Refresh token inválido.');
@@ -161,9 +169,12 @@ export class AuthService {
   };
 
   private getJwtRefreshToken(payload: JwtPayload) {
-    // Usar una clave y expiración diferente para el refresh token
+    const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+    if (!jwtRefreshSecret) {
+      throw new InternalServerErrorException('JWT_REFRESH_SECRET not configured');
+    }
     return this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
+      secret: jwtRefreshSecret,
       expiresIn: '30d',
     });
   }

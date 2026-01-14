@@ -196,13 +196,18 @@ export class OrderService {
     };
   }
 
-  async findOne(id: string) {
-    const response = await this.orderRepository.findOneBy({
-      id,
+  async findOne(id: string, user?: User) {
+    const response = await this.orderRepository.findOne({
+      where: { id },
+      relations: ['user', 'orderItems', 'orderItems.product', 'orderItems.product.images'],
     });
 
     if (!response)
       throw new NotFoundException(`Order with id ${id} not found.`);
+
+    if (user && !user.roles.includes('admin') && response.user.id !== user.id) {
+      throw new NotFoundException(`Order with id ${id} not found.`);
+    }
 
     const order = {
       ...response,
